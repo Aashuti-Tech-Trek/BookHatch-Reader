@@ -26,7 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { StorySettingsSheet } from "@/components/story-settings-sheet";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, Draggable, type DropResult } from 'react-beautiful-dnd';
 
 
 interface Chapter {
