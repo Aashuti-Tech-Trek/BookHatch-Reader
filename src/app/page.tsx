@@ -1,28 +1,33 @@
+
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { type Book, books } from "@/lib/data";
+import { type Book, books, genres } from "@/lib/data";
 import { BookCard } from "@/components/book-card";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { BookOpen, Sparkles } from "lucide-react";
+import { BookOpen, Sparkles, Search } from "lucide-react";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import Image from "next/image";
 
 export default function Home() {
-  const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredBooks = useMemo(() => {
-    if (!searchQuery) {
-      return books;
-    }
-    return books.filter(
-      (book) =>
-        book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        book.author.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [searchQuery]);
+  const featuredBooks = useMemo(() => books.slice(0, 4), []);
+  const genresWithBooks = useMemo(() => {
+    return genres
+      .map((genre) => ({
+        genre,
+        books: books.filter((book) => book.genre === genre),
+      }))
+      .filter((genre) => genre.books.length > 0);
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
@@ -34,16 +39,12 @@ export default function Home() {
               BookHatch Reader
             </span>
           </Link>
-          <div className="flex-1">
-            <Input
-              placeholder="Search by title or author..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="max-w-sm"
-              aria-label="Search books"
-            />
-          </div>
+          <div className="flex-1" />
           <nav className="flex items-center space-x-1 sm:space-x-2">
+             <Button variant="ghost" size="icon">
+                <Search className="h-4 w-4" />
+                <span className="sr-only">Search</span>
+            </Button>
             <Button asChild variant="ghost">
               <Link href="/recommendations">
                 <Sparkles className="mr-0 sm:mr-2 h-4 w-4" />
@@ -55,20 +56,53 @@ export default function Home() {
         </div>
       </header>
       <main className="flex-grow container py-8">
-        {filteredBooks.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            {filteredBooks.map((book) => (
-              <BookCard key={book.id} book={book} />
+        <section className="mb-12">
+            <Carousel
+                opts={{
+                align: "start",
+                loop: true,
+                }}
+                className="w-full"
+            >
+                <CarouselContent>
+                {featuredBooks.map((book) => (
+                    <CarouselItem key={book.id}>
+                    <Link href={`/books/${book.id}`}>
+                        <div className="relative aspect-[2/1] md:aspect-[3/1] w-full rounded-lg overflow-hidden">
+                        <Image
+                            src={book.coverImage}
+                            alt={`Cover of ${book.title}`}
+                            fill
+                            className="object-cover"
+                             data-ai-hint={`${book.genre} book landscape`}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent p-8 flex flex-col justify-end">
+                            <h2 className="text-3xl md:text-4xl font-bold text-white font-headline">{book.title}</h2>
+                            <p className="text-white/90 mt-2 max-w-prose">{book.description}</p>
+                        </div>
+                        </div>
+                    </Link>
+                    </CarouselItem>
+                ))}
+                </CarouselContent>
+                <CarouselPrevious className="hidden sm:flex" />
+                <CarouselNext className="hidden sm:flex" />
+            </Carousel>
+        </section>
+        
+        <div className="space-y-12">
+            {genresWithBooks.map(({ genre, books: genreBooks }) => (
+                <section key={genre}>
+                    <h2 className="text-2xl font-bold font-headline mb-4">{genre}</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                        {genreBooks.map((book) => (
+                        <BookCard key={book.id} book={book} />
+                        ))}
+                    </div>
+                </section>
             ))}
-          </div>
-        ) : (
-          <div className="text-center py-16">
-            <h2 className="text-2xl font-bold font-headline">No books found</h2>
-            <p className="text-muted-foreground mt-2">
-              Try adjusting your search query.
-            </p>
-          </div>
-        )}
+        </div>
+
       </main>
       <footer className="container py-6 text-center text-muted-foreground text-sm">
         © {new Date().getFullYear()} BookHatch Reader. All rights reserved.
