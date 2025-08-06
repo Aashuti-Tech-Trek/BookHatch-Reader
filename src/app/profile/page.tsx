@@ -12,6 +12,7 @@ import { BookCard } from "@/components/book-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { EditProfileSheet } from "@/components/edit-profile-sheet";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 
 export interface UserProfile {
   name: string;
@@ -29,6 +30,7 @@ export default function MyProfilePage() {
   const currentlyReading = books.slice(0, 2);
   const readHistory = books.slice(2, 5);
   const wishlist = books.slice(5, 7);
+  const myStories = books.slice(0,1);
 
   const handleProfileUpdate = (newProfile: UserProfile) => {
     setUser(newProfile);
@@ -74,10 +76,11 @@ export default function MyProfilePage() {
             </aside>
             <div className="w-full md:w-3/4">
                 <Tabs defaultValue="reading">
-                    <TabsList className="grid w-full grid-cols-3">
+                    <TabsList className="grid w-full grid-cols-4">
                         <TabsTrigger value="reading">Currently Reading</TabsTrigger>
                         <TabsTrigger value="history">Read History</TabsTrigger>
                         <TabsTrigger value="wishlist">Wishlist</TabsTrigger>
+                        <TabsTrigger value="stories">My Stories</TabsTrigger>
                     </TabsList>
                     <Separator className="my-6" />
                     <TabsContent value="reading">
@@ -104,6 +107,44 @@ export default function MyProfilePage() {
                                 <BookCard key={book.id} book={book} />
                             ))}
                         </div>
+                    </TabsContent>
+                     <TabsContent value="stories">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                           {myStories.map(book => (
+                                <Link href={`/stories/${book.id}/edit`} key={book.id} className="group">
+                                    <Card className="h-full flex flex-col">
+                                        <CardHeader>
+                                             <div className="aspect-[2/3] w-full overflow-hidden rounded-md">
+                                                <Image
+                                                    src={book.coverImage}
+                                                    alt={`Cover of ${book.title}`}
+                                                    width={300}
+                                                    height={450}
+                                                    className="w-full h-full object-cover transition-transform duration-300 ease-in-out group-hover:scale-105"
+                                                    data-ai-hint={`${book.genre} book`}
+                                                />
+                                            </div>
+                                        </CardHeader>
+                                        <CardContent className="flex-grow">
+                                            <CardTitle className="font-headline text-lg">{book.title}</CardTitle>
+                                            <CardDescription>{book.genre}</CardDescription>
+                                        </CardContent>
+                                        <CardFooter>
+                                            <Button variant="outline" className="w-full">
+                                                <Edit className="mr-2 h-4 w-4" />
+                                                Edit Story
+                                            </Button>
+                                        </CardFooter>
+                                    </Card>
+                                </Link>
+                            ))}
+                        </div>
+                        <Button asChild className="mt-6 w-full">
+                           <Link href="/stories/new">
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Create New Story
+                           </Link>
+                        </Button>
                     </TabsContent>
                 </Tabs>
             </div>
