@@ -21,10 +21,12 @@ export function StoryEditor() {
   const [isBold, setIsBold] = useState(false);
   const [isItalic, setIsItalic] = useState(false);
   const [isUnderline, setIsUnderline] = useState(false);
+  const [isStrikethrough, setIsStrikethrough] = useState(false);
 
   const toggleBold = () => setIsBold(!isBold);
   const toggleItalic = () => setIsItalic(!isItalic);
   const toggleUnderline = () => setIsUnderline(!isUnderline);
+  const toggleStrikethrough = () => setIsStrikethrough(!isStrikethrough);
 
   return (
     <div className="flex flex-col h-full">
@@ -38,24 +40,24 @@ export function StoryEditor() {
         <Button variant="ghost" size="icon" onClick={toggleUnderline} data-active={isUnderline} className="data-[active=true]:bg-muted">
           <Underline className="h-4 w-4" />
         </Button>
-        <Button variant="ghost" size="icon">
+        <Button variant="ghost" size="icon" onClick={toggleStrikethrough} data-active={isStrikethrough} className="data-[active=true]:bg-muted">
           <Strikethrough className="h-4 w-4" />
         </Button>
         <Separator orientation="vertical" className="h-6 mx-1" />
-        <Button variant="ghost" size="icon">
+        <Button variant="ghost" size="icon" disabled>
           <List className="h-4 w-4" />
         </Button>
-        <Button variant="ghost" size="icon">
+        <Button variant="ghost" size="icon" disabled>
           <ListOrdered className="h-4 w-4" />
         </Button>
-        <Button variant="ghost" size="icon">
+        <Button variant="ghost" size="icon" disabled>
           <Quote className="h-4 w-4" />
         </Button>
         <Separator orientation="vertical" className="h-6 mx-1" />
-        <Button variant="ghost" size="icon">
+        <Button variant="ghost" size="icon" disabled>
           <ImageIcon className="h-4 w-4" />
         </Button>
-        <Button variant="ghost" size="icon">
+        <Button variant="ghost" size="icon" disabled>
           <Video className="h-4 w-4" />
         </Button>
       </div>
@@ -67,6 +69,7 @@ export function StoryEditor() {
                 "font-bold": isBold,
                 "italic": isItalic,
                 "underline": isUnderline,
+                "line-through": isStrikethrough,
             }
         )}
         style={{ minHeight: "500px" }}
