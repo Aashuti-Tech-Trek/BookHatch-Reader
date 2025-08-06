@@ -9,9 +9,8 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { BookCard } from "@/components/book-card";
 
 export default function UserProfilePage({ params }: { params: { id: string } }) {
-  // In a real app, you'd fetch user data from Firestore based on params.id
-  // For now, we'll find the author from our static data based on author name.
-  // This assumes author names are unique and can be used as an ID.
+  // In a real app, you'd fetch user data from a database.
+  // For now, we'll find the author from our static data.
   const authorName = decodeURIComponent(params.id);
   const authorBooks = books.filter((b) => b.author === authorName);
 
@@ -19,6 +18,7 @@ export default function UserProfilePage({ params }: { params: { id: string } }) 
     notFound();
   }
 
+  // Placeholder data for the author profile
   const author = {
     name: authorName,
     bio: `An acclaimed author known for captivating stories in the ${authorBooks[0].genre} genre. With a passion for creating immersive worlds and unforgettable characters, ${authorName} has garnered a dedicated following.`,
@@ -48,7 +48,7 @@ export default function UserProfilePage({ params }: { params: { id: string } }) 
         </Button>
 
         <div className="flex flex-col md:flex-row gap-8 items-start">
-            <div className="w-full md:w-1/4 flex flex-col items-center text-center">
+            <aside className="w-full md:w-1/4 flex flex-col items-center text-center p-4 border rounded-lg bg-card">
                  <Image
                     src={author.profilePicture}
                     alt={`Profile of ${author.name}`}
@@ -58,7 +58,7 @@ export default function UserProfilePage({ params }: { params: { id: string } }) 
                     data-ai-hint="person portrait"
                   />
                 <h1 className="text-3xl font-bold font-headline">{author.name}</h1>
-                <p className="text-muted-foreground mt-2">{author.bio}</p>
+                <p className="text-muted-foreground mt-2 text-sm">{author.bio}</p>
                  <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mt-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
                         <Heart className="h-4 w-4 text-red-500" />
@@ -73,8 +73,8 @@ export default function UserProfilePage({ params }: { params: { id: string } }) 
                         <span>{author.followers.toLocaleString()} Followers</span>
                     </div>
                 </div>
-                 <Button className="mt-4">Follow</Button>
-            </div>
+                 <Button className="mt-4 w-full">Follow</Button>
+            </aside>
             <div className="w-full md:w-3/4">
                 <h2 className="text-2xl font-bold font-headline mb-4">Published Stories</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
