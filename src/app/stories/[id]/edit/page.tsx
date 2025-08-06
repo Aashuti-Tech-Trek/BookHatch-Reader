@@ -4,7 +4,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { notFound } from "next/navigation";
+import { notFound, useParams } from "next/navigation";
 import { books } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,9 +28,12 @@ interface Chapter {
     title: string;
 }
 
-export default function EditStoryPage({ params }: { params: { id: string } }) {
+export default function EditStoryPage() {
+  const params = useParams();
+  const storyId = Array.isArray(params.id) ? params.id[0] : params.id;
+
   const [story, setStory] = useState(() => {
-    const foundStory = books.find((b) => b.id === params.id);
+    const foundStory = books.find((b) => b.id === storyId);
     return foundStory;
   });
 
