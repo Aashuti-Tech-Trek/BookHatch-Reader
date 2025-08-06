@@ -14,7 +14,9 @@ import {
   Settings,
   Trash2,
   FileText,
-  GripVertical
+  GripVertical,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { StoryEditor } from "@/components/story-editor";
@@ -23,10 +25,13 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { StorySettingsSheet } from "@/components/story-settings-sheet";
 import { notFound } from "next/navigation";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 interface Chapter {
     id: number;
     title: string;
+    isPublished: boolean;
 }
 
 export default function EditStoryPage() {
@@ -39,10 +44,12 @@ export default function EditStoryPage() {
   });
 
   const [chapters, setChapters] = useState<Chapter[]>([
-    { id: 1, title: "The Discovery" },
-    { id: 2, title: "A Fateful Encounter" },
-    { id: 3, title: "Whispers in the Dark" },
+    { id: 1, title: "The Discovery", isPublished: true },
+    { id: 2, title: "A Fateful Encounter", isPublished: true },
+    { id: 3, title: "Whispers in the Dark", isPublished: false },
   ]);
+
+  const [activeChapterId, setActiveChapterId] = useState<number | null>(chapters[0]?.id ?? null);
 
   if (!story) {
     notFound();
@@ -50,12 +57,29 @@ export default function EditStoryPage() {
   
   const handleAddChapter = () => {
     const newId = chapters.length > 0 ? Math.max(...chapters.map(c => c.id)) + 1 : 1;
-    setChapters([...chapters, { id: newId, title: `New Chapter ${newId}` }]);
+    const newChapter = { id: newId, title: `New Chapter ${newId}`, isPublished: false };
+    setChapters([...chapters, newChapter]);
+    setActiveChapterId(newId);
   };
 
   const handleDeleteChapter = (id: number) => {
     setChapters(chapters.filter(chapter => chapter.id !== id));
+    if (activeChapterId === id) {
+        setActiveChapterId(chapters.length > 1 ? chapters[0].id : null);
+    }
   };
+
+  const handleChapterTitleChange = (id: number, newTitle: string) => {
+    setChapters(chapters.map(chapter => 
+        chapter.id === id ? { ...chapter, title: newTitle } : chapter
+    ));
+  };
+
+  const handleTogglePublish = (id: number) => {
+     setChapters(chapters.map(chapter => 
+        chapter.id === id ? { ...chapter, isPublished: !chapter.isPublished } : chapter
+    ));
+  }
   
    const handleStoryUpdate = (updatedStory: { title: string, genre: string, description: string, coverImage: string }) => {
     setStory(prevStory => {
@@ -63,6 +87,8 @@ export default function EditStoryPage() {
       return { ...prevStory, ...updatedStory };
     });
   };
+
+  const activeChapter = chapters.find(c => c.id === activeChapterId);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -76,7 +102,7 @@ export default function EditStoryPage() {
           </Link>
           <div className="flex items-center gap-4">
             <Button variant="secondary">Preview</Button>
-            <Button>Publish</Button>
+            <Button>Publish All</Button>
             <ThemeToggle />
           </div>
         </div>
@@ -123,17 +149,32 @@ export default function EditStoryPage() {
                 <CardHeader>
                     <CardTitle>Chapters</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2">
+                <CardContent className="space-y-1">
                     {chapters.map(chapter => (
-                        <div key={chapter.id} className="group flex items-center justify-between p-2 rounded-md hover:bg-muted">
+                        <div 
+                            key={chapter.id} 
+                            className={cn(
+                                "group flex items-center justify-between p-2 rounded-md hover:bg-muted cursor-pointer",
+                                activeChapterId === chapter.id && "bg-muted"
+                            )}
+                            onClick={() => setActiveChapterId(chapter.id)}
+                        >
                             <div className="flex items-center gap-2">
                                 <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />
-                                <FileText className="h-4 w-4" />
-                                <span>{chapter.title}</span>
+                                <FileText className="h-4 w-4 flex-shrink-0" />
+                                <span className="truncate">{chapter.title}</span>
                             </div>
-                            <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => handleDeleteChapter(chapter.id)}>
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
+                            <div className="flex items-center">
+                                <Badge variant={chapter.isPublished ? "secondary" : "outline"} className="mr-2 h-5">
+                                    {chapter.isPublished ? 'Published' : 'Draft'}
+                                </Badge>
+                                <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={(e) => { e.stopPropagation(); handleTogglePublish(chapter.id);}}>
+                                    {chapter.isPublished ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </Button>
+                                <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={(e) => { e.stopPropagation(); handleDeleteChapter(chapter.id)}}>
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </div>
                         </div>
                     ))}
                 </CardContent>
@@ -144,17 +185,29 @@ export default function EditStoryPage() {
                     </Button>
                 </CardFooter>
             </Card>
-
           </aside>
           <div className="lg:col-span-3">
             <Card>
-                <CardHeader>
-                    <input type="text" defaultValue="Chapter 1: The Discovery" className="text-3xl font-bold font-headline bg-transparent border-none focus:ring-0 p-0 w-full" />
-                </CardHeader>
-                <Separator />
-                <CardContent className="p-0">
-                    <StoryEditor />
-                </CardContent>
+                {activeChapter ? (
+                    <>
+                        <CardHeader>
+                            <Input 
+                                type="text" 
+                                value={activeChapter.title}
+                                onChange={(e) => handleChapterTitleChange(activeChapter.id, e.target.value)}
+                                className="text-3xl font-bold font-headline bg-transparent border-none focus:ring-0 p-0 w-full h-auto" 
+                            />
+                        </CardHeader>
+                        <Separator />
+                        <CardContent className="p-0">
+                            <StoryEditor />
+                        </CardContent>
+                    </>
+                ) : (
+                    <CardContent className="p-12 text-center">
+                        <p className="text-muted-foreground">Select a chapter to start editing or add a new one.</p>
+                    </CardContent>
+                )}
             </Card>
           </div>
         </div>
@@ -162,3 +215,5 @@ export default function EditStoryPage() {
     </div>
   );
 }
+
+    
