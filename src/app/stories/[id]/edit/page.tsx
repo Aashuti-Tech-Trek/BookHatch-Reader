@@ -1,10 +1,10 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useParams } from "next/navigation";
+import { useParams, notFound } from "next/navigation";
 import { books, type Book } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,7 +24,6 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/componen
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { StorySettingsSheet } from "@/components/story-settings-sheet";
-import { notFound } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -38,20 +37,35 @@ export default function EditStoryPage() {
   const params = useParams();
   const storyId = Array.isArray(params.id) ? params.id[0] : params.id;
 
-  const [story, setStory] = useState<Book | undefined>(() => {
-    return books.find((b) => b.id === storyId);
-  });
+  const [story, setStory] = useState<Book | undefined>();
+  const [chapters, setChapters] = useState<Chapter[]>([]);
+  const [activeChapterId, setActiveChapterId] = useState<number | null>(null);
 
-  const [chapters, setChapters] = useState<Chapter[]>([
-    { id: 1, title: "The Discovery", isPublished: true },
-    { id: 2, title: "A Fateful Encounter", isPublished: true },
-    { id: 3, title: "Whispers in the Dark", isPublished: false },
-  ]);
+  useEffect(() => {
+    const foundStory = books.find((b) => b.id === storyId);
+    if (foundStory) {
+      setStory(foundStory);
+      // Placeholder chapters, you would fetch these for the story
+      const initialChapters = [
+        { id: 1, title: "The Discovery", isPublished: true },
+        { id: 2, title: "A Fateful Encounter", isPublished: true },
+        { id: 3, title: "Whispers in the Dark", isPublished: false },
+      ];
+      setChapters(initialChapters);
+      setActiveChapterId(initialChapters[0]?.id ?? null);
+    } else {
+        notFound();
+    }
+  }, [storyId]);
 
-  const [activeChapterId, setActiveChapterId] = useState<number | null>(chapters[0]?.id ?? null);
 
   if (!story) {
-    notFound();
+    // You can render a loading state here
+    return (
+        <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+            <p>Loading story...</p>
+        </div>
+    );
   }
   
   const handleAddChapter = () => {
