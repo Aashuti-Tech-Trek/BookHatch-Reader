@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { ArrowLeft, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { NewStoryForm } from "@/components/new-story-form";
 
 export default function NewStoryPage() {
