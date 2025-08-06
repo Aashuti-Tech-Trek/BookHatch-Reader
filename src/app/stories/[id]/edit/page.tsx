@@ -65,7 +65,7 @@ export default function EditStoryPage() {
   const handleDeleteChapter = (id: number) => {
     setChapters(chapters.filter(chapter => chapter.id !== id));
     if (activeChapterId === id) {
-        setActiveChapterId(chapters.length > 1 ? chapters[0].id : null);
+        setActiveChapterId(chapters.length > 1 ? chapters.filter(c => c.id !== id)[0].id : null);
     }
   };
 
@@ -84,7 +84,11 @@ export default function EditStoryPage() {
    const handleStoryUpdate = (updatedStory: { title: string, genre: string, description: string, coverImage: string }) => {
     setStory(prevStory => {
       if (!prevStory) return undefined;
-      return { ...prevStory, ...updatedStory };
+      // This is a partial update, so we need to merge with existing data
+      const finalStory = { ...prevStory, ...updatedStory };
+      // The `longDescription` is not in the update object, let's assume it should be based on `description` or handled elsewhere
+      // For now we'll just update what's provided.
+      return { ...finalStory, longDescription: updatedStory.description };
     });
   };
 
@@ -168,10 +172,10 @@ export default function EditStoryPage() {
                                 <Badge variant={chapter.isPublished ? "secondary" : "outline"} className="mr-2 h-5">
                                     {chapter.isPublished ? 'Published' : 'Draft'}
                                 </Badge>
-                                <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={(e) => { e.stopPropagation(); handleTogglePublish(chapter.id);}}>
-                                    {chapter.isPublished ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={(e) => { e.stopPropagation(); handleTogglePublish(chapter.id);}} title={chapter.isPublished ? "Unpublish" : "Publish"}>
+                                    {chapter.isPublished ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                                 </Button>
-                                <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={(e) => { e.stopPropagation(); handleDeleteChapter(chapter.id)}}>
+                                <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive/70 hover:text-destructive opacity-0 group-hover:opacity-100" onClick={(e) => { e.stopPropagation(); handleDeleteChapter(chapter.id)}}>
                                     <Trash2 className="h-4 w-4" />
                                 </Button>
                             </div>
@@ -215,5 +219,3 @@ export default function EditStoryPage() {
     </div>
   );
 }
-
-    
