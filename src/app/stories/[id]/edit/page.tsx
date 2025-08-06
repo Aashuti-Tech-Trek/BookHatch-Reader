@@ -15,7 +15,7 @@ import {
   FileText,
   GripVertical
 } from "lucide-react";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { StoryEditor } from "@/components/story-editor";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
