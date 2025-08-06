@@ -26,9 +26,11 @@ import { Badge } from "@/components/ui/badge";
 import { StorySettingsSheet } from "@/components/story-settings-sheet";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
+
 
 interface Chapter {
-    id: number;
+    id: string;
     title: string;
     isPublished: boolean;
 }
@@ -39,17 +41,19 @@ export default function EditStoryPage() {
 
   const [story, setStory] = useState<Book | undefined>();
   const [chapters, setChapters] = useState<Chapter[]>([]);
-  const [activeChapterId, setActiveChapterId] = useState<number | null>(null);
+  const [activeChapterId, setActiveChapterId] = useState<string | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
     const foundStory = books.find((b) => b.id === storyId);
     if (foundStory) {
       setStory(foundStory);
       // Placeholder chapters, you would fetch these for the story
       const initialChapters = [
-        { id: 1, title: "The Discovery", isPublished: true },
-        { id: 2, title: "A Fateful Encounter", isPublished: true },
-        { id: 3, title: "Whispers in the Dark", isPublished: false },
+        { id: "chapter-1", title: "The Discovery", isPublished: true },
+        { id: "chapter-2", title: "A Fateful Encounter", isPublished: true },
+        { id: "chapter-3", title: "Whispers in the Dark", isPublished: false },
       ];
       setChapters(initialChapters);
       setActiveChapterId(initialChapters[0]?.id ?? null);
@@ -59,7 +63,7 @@ export default function EditStoryPage() {
   }, [storyId]);
 
 
-  if (!story) {
+  if (!story || !isMounted) {
     // You can render a loading state here
     return (
         <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
@@ -69,26 +73,26 @@ export default function EditStoryPage() {
   }
   
   const handleAddChapter = () => {
-    const newId = chapters.length > 0 ? Math.max(...chapters.map(c => c.id)) + 1 : 1;
-    const newChapter = { id: newId, title: `New Chapter ${newId}`, isPublished: false };
+    const newId = `chapter-${chapters.length > 0 ? Math.max(...chapters.map(c => parseInt(c.id.split('-')[1]))) + 1 : 1}`;
+    const newChapter = { id: newId, title: `New Chapter`, isPublished: false };
     setChapters([...chapters, newChapter]);
     setActiveChapterId(newId);
   };
 
-  const handleDeleteChapter = (id: number) => {
+  const handleDeleteChapter = (id: string) => {
     setChapters(chapters.filter(chapter => chapter.id !== id));
     if (activeChapterId === id) {
         setActiveChapterId(chapters.length > 1 ? chapters.filter(c => c.id !== id)[0].id : null);
     }
   };
 
-  const handleChapterTitleChange = (id: number, newTitle: string) => {
+  const handleChapterTitleChange = (id: string, newTitle: string) => {
     setChapters(chapters.map(chapter => 
         chapter.id === id ? { ...chapter, title: newTitle } : chapter
     ));
   };
 
-  const handleTogglePublish = (id: number) => {
+  const handleTogglePublish = (id: string) => {
      setChapters(chapters.map(chapter => 
         chapter.id === id ? { ...chapter, isPublished: !chapter.isPublished } : chapter
     ));
@@ -101,7 +105,18 @@ export default function EditStoryPage() {
     });
   };
 
+  const onDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+
+    const items = Array.from(chapters);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    setChapters(items);
+  };
+
   const activeChapter = chapters.find(c => c.id === activeChapterId);
+  const isStoryPublished = chapters.length > 0 && chapters.every(c => c.isPublished);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -146,7 +161,9 @@ export default function EditStoryPage() {
                     <h2 className="text-xl font-bold font-headline">{story.title}</h2>
                     <div className="flex flex-wrap gap-1 mt-2">
                         <Badge variant="secondary">{story.genre}</Badge>
-                         <Badge variant="outline">WIP</Badge>
+                         <Badge variant={isStoryPublished ? "default" : "outline"}>
+                           {isStoryPublished ? "Published" : "Draft"}
+                         </Badge>
                     </div>
                  </CardContent>
                  <CardFooter>
@@ -163,33 +180,49 @@ export default function EditStoryPage() {
                     <CardTitle>Chapters</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-1">
-                    {chapters.map(chapter => (
-                        <div 
-                            key={chapter.id} 
-                            className={cn(
-                                "group flex items-center justify-between p-2 rounded-md hover:bg-muted cursor-pointer",
-                                activeChapterId === chapter.id && "bg-muted"
+                    <DragDropContext onDragEnd={onDragEnd}>
+                        <Droppable droppableId="chapters">
+                            {(provided) => (
+                                <div {...provided.droppableProps} ref={provided.innerRef}>
+                                    {chapters.map((chapter, index) => (
+                                         <Draggable key={chapter.id} draggableId={chapter.id} index={index}>
+                                            {(provided, snapshot) => (
+                                                <div 
+                                                    ref={provided.innerRef}
+                                                    {...provided.draggableProps}
+                                                    {...provided.dragHandleProps}
+                                                    className={cn(
+                                                        "group flex items-center justify-between p-2 rounded-md hover:bg-muted cursor-pointer",
+                                                        activeChapterId === chapter.id && "bg-muted",
+                                                        snapshot.isDragging && "bg-primary/20 shadow-lg"
+                                                    )}
+                                                    onClick={() => setActiveChapterId(chapter.id)}
+                                                >
+                                                    <div className="flex items-center gap-2">
+                                                        <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />
+                                                        <FileText className="h-4 w-4 flex-shrink-0" />
+                                                        <span className="truncate">{chapter.title}</span>
+                                                    </div>
+                                                    <div className="flex items-center">
+                                                        <Badge variant={chapter.isPublished ? "secondary" : "outline"} className="mr-2 h-5">
+                                                            {chapter.isPublished ? 'Published' : 'Draft'}
+                                                        </Badge>
+                                                        <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={(e) => { e.stopPropagation(); handleTogglePublish(chapter.id);}} title={chapter.isPublished ? "Unpublish" : "Publish"}>
+                                                            {chapter.isPublished ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                                                        </Button>
+                                                        <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive/70 hover:text-destructive opacity-0 group-hover:opacity-100" onClick={(e) => { e.stopPropagation(); handleDeleteChapter(chapter.id)}}>
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </Draggable>
+                                    ))}
+                                    {provided.placeholder}
+                                </div>
                             )}
-                            onClick={() => setActiveChapterId(chapter.id)}
-                        >
-                            <div className="flex items-center gap-2">
-                                <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />
-                                <FileText className="h-4 w-4 flex-shrink-0" />
-                                <span className="truncate">{chapter.title}</span>
-                            </div>
-                            <div className="flex items-center">
-                                <Badge variant={chapter.isPublished ? "secondary" : "outline"} className="mr-2 h-5">
-                                    {chapter.isPublished ? 'Published' : 'Draft'}
-                                </Badge>
-                                <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={(e) => { e.stopPropagation(); handleTogglePublish(chapter.id);}} title={chapter.isPublished ? "Unpublish" : "Publish"}>
-                                    {chapter.isPublished ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                                </Button>
-                                <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive/70 hover:text-destructive opacity-0 group-hover:opacity-100" onClick={(e) => { e.stopPropagation(); handleDeleteChapter(chapter.id)}}>
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        </div>
-                    ))}
+                        </Droppable>
+                    </DragDropContext>
                 </CardContent>
                 <CardFooter>
                     <Button variant="outline" className="w-full" onClick={handleAddChapter}>

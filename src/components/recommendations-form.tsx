@@ -17,9 +17,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, BookCheck, Lightbulb, AlertTriangle } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Loader2, Lightbulb } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import Image from "next/image";
 
 const FormSchema = z.object({
   genres: z.array(z.string()).refine((value) => value.some((item) => item), {
@@ -62,7 +63,7 @@ export function RecommendationsForm() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       <Card>
         <CardContent className="p-6">
           <Form {...form}>
@@ -78,7 +79,7 @@ export function RecommendationsForm() {
                         Select one or more genres to get personalized recommendations.
                       </FormDescription>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                       {genres.map((item) => (
                         <FormField
                           key={item}
@@ -117,7 +118,7 @@ export function RecommendationsForm() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" disabled={loading} className="w-full">
+              <Button type="submit" disabled={loading} className="w-full" size="lg">
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -137,28 +138,45 @@ export function RecommendationsForm() {
 
       {loading && (
         <div className="text-center p-8">
-          <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
-          <p className="mt-4 text-muted-foreground">Our AI is thinking...</p>
+          <Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" />
+          <p className="mt-4 text-muted-foreground text-lg">Our AI is searching for your perfect books...</p>
         </div>
       )}
 
       {recommendations.length > 0 && (
-        <div className="mt-8">
-          <h2 className="text-2xl font-bold text-center mb-4 font-headline">
+        <div className="mt-12">
+          <h2 className="text-3xl font-bold text-center mb-6 font-headline">
             Your Personal Reading List
           </h2>
-          <Card>
-            <CardContent className="p-6">
-              <ul className="space-y-3">
-                {recommendations.map((rec, index) => (
-                  <li key={index} className="flex items-start">
-                    <BookCheck className="h-5 w-5 text-primary mr-3 mt-1 flex-shrink-0" />
-                    <span className="text-base">{rec}</span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
+           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {recommendations.map((rec, index) => {
+              // Extract title and author. Assumes format "1. Title by Author"
+              const match = rec.match(/(\d+\.\s*)?(.*?)(\s+by\s+(.*))?$/);
+              const title = match ? match[2] : rec;
+              const author = match ? match[4] : 'Unknown Author';
+
+              return (
+                <Card key={index} className="overflow-hidden">
+                    <CardHeader className="p-0">
+                         <div className="aspect-[2/3] w-full bg-muted">
+                            <Image
+                                src={`https://placehold.co/300x450.png`}
+                                alt={`Cover of ${title}`}
+                                width={300}
+                                height={450}
+                                className="w-full h-full object-cover"
+                                data-ai-hint="book"
+                            />
+                        </div>
+                    </CardHeader>
+                    <CardContent className="p-4">
+                        <CardTitle className="font-headline text-lg leading-tight truncate">{title}</CardTitle>
+                        <CardDescription className="mt-1 text-sm">{author}</CardDescription>
+                    </CardContent>
+                </Card>
+              )
+            })}
+          </div>
         </div>
       )}
     </div>

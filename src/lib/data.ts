@@ -18,6 +18,9 @@ export const genres = [
   "Horror",
   "Classic Literature",
   "Adventure",
+  "Young Adult",
+  "Biography",
+  "Self-Help"
 ];
 
 export const books: Book[] = [
@@ -93,7 +96,7 @@ export const books: Book[] = [
     coverImage: "https://placehold.co/300x450.png",
     genre: "Horror",
   },
-    {
+  {
     id: "9",
     title: "The Silent Patient",
     author: "Alex Michaelides",
@@ -111,4 +114,49 @@ export const books: Book[] = [
     coverImage: "https://placehold.co/300x450.png",
     genre: "Mystery",
   },
+  {
+    id: "11",
+    title: "The Hunger Games",
+    author: "Suzanne Collins",
+    description: "In a dystopian future, a teenage girl volunteers to take her younger sister's place in a televised fight to the death.",
+    longDescription: "In the ruins of a place once known as North America lies the nation of Panem, a shining Capitol surrounded by twelve outlying districts. The Capitol is harsh and cruel and keeps the districts in line by forcing them all to send one boy and one girl between the ages of twelve and eighteen to participate in the annual Hunger Games, a fight to the death on live TV.",
+    coverImage: "https://placehold.co/300x450.png",
+    genre: "Young Adult",
+  },
+  {
+    id: "12",
+    title: "Sapiens: A Brief History of Humankind",
+    author: "Yuval Noah Harari",
+    description: "A critically acclaimed book that explores the history of humankind from the Stone Age up to the present day.",
+    longDescription: "Professor Yuval Noah Harari's book explores 70,000 years of human history, from the emergence of Homo sapiens to the present. It covers the Cognitive Revolution, the Agricultural Revolution, the unification of humankind, and the Scientific Revolution, offering a unique perspective on our species.",
+    coverImage: "https://placehold.co/300x450.png",
+    genre: "Biography",
+  },
+  {
+    id: "13",
+    title: "The Power of Now",
+    author: "Eckhart Tolle",
+    description: "A guide to spiritual enlightenment that encourages living in the present moment.",
+    longDescription: "Eckhart Tolle's message is simple: living in the 'now' is the truest path to happiness and enlightenment. The book takes readers on an inspiring spiritual journey to find their true and deepest self and reach the ultimate in personal growth and spirituality: the discovery of truth and light.",
+    coverImage: "https://placehold.co/300x450.png",
+    genre: "Self-Help",
+  },
+  {
+    id: "14",
+    title: "Project Hail Mary",
+    author: "Andy Weir",
+    description: "A lone astronaut must save the earth from a disaster in this incredible new science-based thriller.",
+    longDescription: "Ryland Grace is the sole survivor on a desperate, last-chance mission—and if he fails, humanity and the earth itself will perish. Except that right now, he doesn’t know that. He can’t even remember his own name, let alone the nature of his assignment or how to complete it.",
+    coverImage: "https://placehold.co/300x450.png",
+    genre: "Science Fiction",
+  },
+  {
+    id: "15",
+    title: "The Midnight Library",
+    author: "Matt Haig",
+    description: "A novel about all the choices that go into a life well lived.",
+    longDescription: "Between life and death there is a library, and within that library, the shelves go on forever. Every book provides a chance to try another life you could have lived. To see how things would be if you had made other choices . . . Would you have done anything different, if you had the chance to undo your regrets?",
+    coverImage: "https://placehold.co/300x450.png",
+    genre: "Fantasy",
+  }
 ];
