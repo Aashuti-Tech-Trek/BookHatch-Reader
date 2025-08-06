@@ -51,10 +51,10 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
               {book.title}
             </h1>
             <div className="mt-4 flex flex-wrap items-center gap-4 text-lg text-muted-foreground">
-                <div className="flex items-center gap-2">
+                <Link href={`/users/${encodeURIComponent(book.author)}`} className="flex items-center gap-2 hover:text-primary transition-colors">
                     <User className="h-5 w-5" />
                     <span>{book.author}</span>
-                </div>
+                </Link>
                 <div className="flex items-center gap-2">
                     <Tag className="h-5 w-5" />
                     <Badge variant="secondary">{book.genre}</Badge>
