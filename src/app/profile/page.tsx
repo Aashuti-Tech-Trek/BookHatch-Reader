@@ -1,4 +1,7 @@
 
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { books } from "@/lib/data";
@@ -10,18 +13,26 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { EditProfileSheet } from "@/components/edit-profile-sheet";
 
+export interface UserProfile {
+  name: string;
+  bio: string;
+  profilePicture: string;
+}
+
 export default function MyProfilePage() {
-  // Placeholder data for the current user.
-  // In a real app, this would come from an auth context.
-  const user = {
+  const [user, setUser] = useState<UserProfile>({
     name: "Alex Doe",
     bio: "An avid reader of science fiction and fantasy. Always looking for the next great adventure between the pages.",
     profilePicture: "https://placehold.co/128x128.png",
-  };
+  });
 
   const currentlyReading = books.slice(0, 2);
   const readHistory = books.slice(2, 5);
   const wishlist = books.slice(5, 7);
+
+  const handleProfileUpdate = (newProfile: UserProfile) => {
+    setUser(newProfile);
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -49,12 +60,12 @@ export default function MyProfilePage() {
                     alt={`Profile of ${user.name}`}
                     width={128}
                     height={128}
-                    className="rounded-full mb-4 ring-2 ring-primary ring-offset-4 ring-offset-background"
+                    className="rounded-full mb-4 ring-2 ring-primary ring-offset-4 ring-offset-background object-cover"
                     data-ai-hint="person portrait"
                   />
                 <h1 className="text-3xl font-bold font-headline">{user.name}</h1>
                 <p className="text-muted-foreground mt-2">{user.bio}</p>
-                 <EditProfileSheet>
+                 <EditProfileSheet user={user} onProfileUpdate={handleProfileUpdate}>
                     <Button variant="outline" className="mt-4 w-full">
                         <Edit className="mr-2 h-4 w-4" />
                         Edit Profile
@@ -101,4 +112,3 @@ export default function MyProfilePage() {
     </div>
   );
 }
-
