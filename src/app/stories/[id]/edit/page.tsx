@@ -5,7 +5,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useParams } from "next/navigation";
-import { books } from "@/lib/data";
+import { books, type Book } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import {
   ArrowLeft,
@@ -38,9 +38,8 @@ export default function EditStoryPage() {
   const params = useParams();
   const storyId = Array.isArray(params.id) ? params.id[0] : params.id;
 
-  const [story, setStory] = useState(() => {
-    const foundStory = books.find((b) => b.id === storyId);
-    return foundStory;
+  const [story, setStory] = useState<Book | undefined>(() => {
+    return books.find((b) => b.id === storyId);
   });
 
   const [chapters, setChapters] = useState<Chapter[]>([
@@ -81,14 +80,10 @@ export default function EditStoryPage() {
     ));
   }
   
-   const handleStoryUpdate = (updatedStory: { title: string, genre: string, description: string, coverImage: string }) => {
+   const handleStoryUpdate = (updatedStory: Partial<Book>) => {
     setStory(prevStory => {
       if (!prevStory) return undefined;
-      // This is a partial update, so we need to merge with existing data
-      const finalStory = { ...prevStory, ...updatedStory };
-      // The `longDescription` is not in the update object, let's assume it should be based on `description` or handled elsewhere
-      // For now we'll just update what's provided.
-      return { ...finalStory, longDescription: updatedStory.description };
+      return { ...prevStory, ...updatedStory };
     });
   };
 

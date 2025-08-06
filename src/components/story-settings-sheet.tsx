@@ -22,7 +22,7 @@ import { Badge } from "./ui/badge";
 interface StorySettingsSheetProps {
   children: React.ReactNode;
   story: Book;
-  onStoryUpdate: (updatedStory: { title: string, genre: string, description: string, longDescription: string, keywords: string, coverImage: string }) => void;
+  onStoryUpdate: (updatedStory: Partial<Book>) => void;
 }
 
 export function StorySettingsSheet({ children, story, onStoryUpdate }: StorySettingsSheetProps) {
@@ -43,6 +43,9 @@ export function StorySettingsSheet({ children, story, onStoryUpdate }: StorySett
     setLongDescription(story.longDescription)
     setSelectedGenres([story.genre]);
     setCoverImage(story.coverImage);
+    // Assuming keywords are stored in a property that might not exist on the initial Book type
+    // If you add `keywords: string[]` to the Book type, you can set it here.
+    // setKeywords(story.keywords?.join(", ") || "");
   }, [story]);
   
   const handleGenreToggle = (genreToToggle: string) => {
@@ -60,7 +63,6 @@ export function StorySettingsSheet({ children, story, onStoryUpdate }: StorySett
   };
 
   const handleSaveChanges = () => {
-    // For simplicity, we'll just use the first selected genre. A real app might support multiple.
     const primaryGenre = selectedGenres[0] || story.genre;
 
     onStoryUpdate({
@@ -68,7 +70,8 @@ export function StorySettingsSheet({ children, story, onStoryUpdate }: StorySett
       genre: primaryGenre,
       description: summary,
       longDescription,
-      keywords,
+      // In a real app, you would handle keywords as an array
+      // keywords: keywords.split(',').map(k => k.trim()),
       coverImage: coverImageFile ? URL.createObjectURL(coverImageFile) : story.coverImage,
     });
   };
@@ -101,15 +104,7 @@ export function StorySettingsSheet({ children, story, onStoryUpdate }: StorySett
               onChange={(e) => setTitle(e.target.value)}
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="summary">Summary</Label>
-            <Textarea
-              id="summary"
-              value={summary}
-              onChange={(e) => setSummary(e.target.value)}
-            />
-          </div>
-            <div className="space-y-2">
+           <div className="space-y-2">
             <Label>Genre(s)</Label>
              <div className="flex flex-wrap gap-2">
                 {genres.map(g => (
@@ -125,8 +120,25 @@ export function StorySettingsSheet({ children, story, onStoryUpdate }: StorySett
              </div>
           </div>
           <div className="space-y-2">
+            <Label htmlFor="summary">Summary</Label>
+            <Textarea
+              id="summary"
+              value={summary}
+              onChange={(e) => setSummary(e.target.value)}
+            />
+          </div>
+           <div className="space-y-2">
+            <Label htmlFor="longDescription">Full Description</Label>
+            <Textarea
+              id="longDescription"
+              value={longDescription}
+              onChange={(e) => setLongDescription(e.target.value)}
+              rows={5}
+            />
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="keywords">Keywords / Tropes</Label>
-            <Input id="keywords" placeholder="e.g., space opera, found family" onChange={(e) => setKeywords(e.target.value)} />
+            <Input id="keywords" value={keywords} placeholder="e.g., space opera, found family" onChange={(e) => setKeywords(e.target.value)} />
             <p className="text-sm text-muted-foreground">Separate keywords with commas.</p>
           </div>
         </div>
