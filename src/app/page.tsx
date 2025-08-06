@@ -73,7 +73,7 @@ export default function Home() {
             </Button>
             <ThemeToggle />
              <Button variant="ghost" size="icon" asChild>
-                <Link href="/users/Frank%20Herbert">
+                <Link href="/profile">
                     <User className="h-5 w-5" />
                     <span className="sr-only">My Profile</span>
                 </Link>
