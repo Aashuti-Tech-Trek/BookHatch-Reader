@@ -25,8 +25,9 @@ export function NewStoryForm() {
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, you'd save the data and get a new story ID
-    const newStoryId = "9"; // Placeholder
+    // In a real app, you'd save the data and get a new story ID from the backend.
+    // For now, we'll use a placeholder ID and client-side navigation.
+    const newStoryId = "new-story-placeholder"; // Placeholder ID
     router.push(`/stories/${newStoryId}/edit`);
   };
 

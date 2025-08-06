@@ -30,7 +30,7 @@ export default function MyProfilePage() {
   const currentlyReading = books.slice(0, 2);
   const readHistory = books.slice(2, 5);
   const wishlist = books.slice(5, 7);
-  const myStories = books.slice(0,1);
+  const myStories = books.slice(0,2); // Show two books now
 
   const handleProfileUpdate = (newProfile: UserProfile) => {
     setUser(newProfile);
