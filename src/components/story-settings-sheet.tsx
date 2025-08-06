@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, ChangeEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,7 +22,7 @@ import { Badge } from "./ui/badge";
 interface StorySettingsSheetProps {
   children: React.ReactNode;
   story: Book;
-  onStoryUpdate: (updatedStory: { title: string, genre: string, description: string, longDescription: string, keywords: string }) => void;
+  onStoryUpdate: (updatedStory: { title: string, genre: string, description: string, longDescription: string, keywords: string, coverImage: string }) => void;
 }
 
 export function StorySettingsSheet({ children, story, onStoryUpdate }: StorySettingsSheetProps) {
@@ -32,6 +32,8 @@ export function StorySettingsSheet({ children, story, onStoryUpdate }: StorySett
   const [longDescription, setLongDescription] = useState(story.longDescription);
   const [keywords, setKeywords] = useState(""); // Assuming keywords are not in the initial book model
   const [selectedGenres, setSelectedGenres] = useState<string[]>([story.genre]);
+  const [coverImage, setCoverImage] = useState(story.coverImage);
+  const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
 
 
   useEffect(() => {
@@ -40,6 +42,7 @@ export function StorySettingsSheet({ children, story, onStoryUpdate }: StorySett
     setSummary(story.description);
     setLongDescription(story.longDescription)
     setSelectedGenres([story.genre]);
+    setCoverImage(story.coverImage);
   }, [story]);
   
   const handleGenreToggle = (genreToToggle: string) => {
@@ -47,6 +50,14 @@ export function StorySettingsSheet({ children, story, onStoryUpdate }: StorySett
         prev.includes(genreToToggle) ? prev.filter(g => g !== genreToToggle) : [...prev, genreToToggle]
     )
   }
+
+  const handleCoverImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setCoverImageFile(file);
+      setCoverImage(URL.createObjectURL(file));
+    }
+  };
 
   const handleSaveChanges = () => {
     // For simplicity, we'll just use the first selected genre. A real app might support multiple.
@@ -58,6 +69,7 @@ export function StorySettingsSheet({ children, story, onStoryUpdate }: StorySett
       description: summary,
       longDescription,
       keywords,
+      coverImage: coverImageFile ? URL.createObjectURL(coverImageFile) : story.coverImage,
     });
   };
 
@@ -72,6 +84,15 @@ export function StorySettingsSheet({ children, story, onStoryUpdate }: StorySett
           </SheetDescription>
         </SheetHeader>
         <div className="grid gap-6 py-6">
+          <div className="space-y-2">
+            <Label htmlFor="coverImage">Cover Image</Label>
+            <Input 
+              id="coverImage" 
+              type="file"
+              accept="image/*"
+              onChange={handleCoverImageChange}
+            />
+          </div>
           <div className="space-y-2">
             <Label htmlFor="title">Title</Label>
             <Input 

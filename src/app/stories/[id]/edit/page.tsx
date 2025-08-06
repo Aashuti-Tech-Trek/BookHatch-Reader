@@ -4,7 +4,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { notFound, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { books } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,6 +22,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/componen
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { StorySettingsSheet } from "@/components/story-settings-sheet";
+import { notFound } from "next/navigation";
 
 interface Chapter {
     id: number;
@@ -56,7 +57,7 @@ export default function EditStoryPage() {
     setChapters(chapters.filter(chapter => chapter.id !== id));
   };
   
-   const handleStoryUpdate = (updatedStory: { title: string, genre: string }) => {
+   const handleStoryUpdate = (updatedStory: { title: string, genre: string, description: string, coverImage: string }) => {
     setStory(prevStory => {
       if (!prevStory) return undefined;
       return { ...prevStory, ...updatedStory };
