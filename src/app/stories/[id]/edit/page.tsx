@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { books, type Book } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +17,7 @@ import {
   GripVertical,
   Eye,
   EyeOff,
+  Save,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { StoryEditor } from "@/components/story-editor";
@@ -38,12 +39,15 @@ interface Chapter {
 
 export default function EditStoryPage() {
   const params = useParams();
+  const router = useRouter();
   const storyId = Array.isArray(params.id) ? params.id[0] : params.id;
 
   const [story, setStory] = useState<Book | undefined>();
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [activeChapterId, setActiveChapterId] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [saveState, setSaveState] = useState<"idle" | "saving">("idle");
+
 
   // Load initial data from localStorage or fallback to mock data
   useEffect(() => {
@@ -173,6 +177,17 @@ export default function EditStoryPage() {
   
   const handlePublishAll = () => {
     setChapters(chapters.map(chapter => ({ ...chapter, isPublished: true })));
+    // Redirect to the main story page after publishing
+    router.push(`/books/${storyId}`);
+  };
+
+  const handleSaveDraft = () => {
+    setSaveState("saving");
+    // The useEffects already handle saving, so this is for UX feedback.
+    // In a real app, this would trigger an API call.
+    setTimeout(() => {
+      setSaveState("idle");
+    }, 1500);
   };
 
   const activeChapter = chapters.find(c => c.id === activeChapterId);
@@ -189,7 +204,9 @@ export default function EditStoryPage() {
             </span>
           </Link>
           <div className="flex items-center gap-4">
-            <Button variant="secondary">Preview</Button>
+            <Button variant="secondary" onClick={handleSaveDraft} disabled={saveState === 'saving'}>
+                {saveState === 'saving' ? 'Saved!' : 'Save Draft'}
+            </Button>
             <Button onClick={handlePublishAll}>Publish All</Button>
             <ThemeToggle />
           </div>
@@ -326,3 +343,5 @@ export default function EditStoryPage() {
     </div>
   );
 }
+
+    
