@@ -46,7 +46,7 @@ export default function EditStoryPage() {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    // This effect runs once on the client after the component mounts.
+    setIsMounted(true);
     const foundStory = books.find((b) => b.id === storyId);
     if (foundStory) {
       setStory(foundStory);
@@ -73,10 +73,9 @@ export default function EditStoryPage() {
           setChapters([]);
           setActiveChapterId(null);
         } else {
-            notFound();
+            // In a real app, you might want to redirect to a 404 page
         }
     }
-    setIsMounted(true);
   }, [storyId]);
 
 
@@ -144,6 +143,10 @@ export default function EditStoryPage() {
 
     setChapters(items);
   };
+  
+  const handlePublishAll = () => {
+    setChapters(chapters.map(chapter => ({ ...chapter, isPublished: true })));
+  };
 
   const activeChapter = chapters.find(c => c.id === activeChapterId);
   const isStoryPublished = chapters.length > 0 && chapters.every(c => c.isPublished);
@@ -160,7 +163,7 @@ export default function EditStoryPage() {
           </Link>
           <div className="flex items-center gap-4">
             <Button variant="secondary">Preview</Button>
-            <Button>Publish All</Button>
+            <Button onClick={handlePublishAll}>Publish All</Button>
             <ThemeToggle />
           </div>
         </div>
