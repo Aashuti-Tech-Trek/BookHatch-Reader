@@ -35,6 +35,13 @@ interface Chapter {
     isPublished: boolean;
 }
 
+// For static export, generate params for possible story IDs
+export async function generateStaticParams() {
+  // In a real application, you would fetch your story IDs from a database
+  // For now, returning placeholder IDs
+  return [{ id: 'story-1' }, { id: 'story-2' }];
+}
+
 export default function EditStoryPage() {
   const params = useParams();
   const storyId = Array.isArray(params.id) ? params.id[0] : params.id;
