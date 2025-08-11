@@ -79,14 +79,6 @@ export default function EditStoryPage() {
   }, [storyId]);
 
 
-  if (!isMounted) {
-    return (
-        <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
-            <p>Loading story editor...</p>
-        </div>
-    );
-  }
-
   if (!story) {
     return (
         <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
@@ -299,3 +291,5 @@ export default function EditStoryPage() {
     </div>
   );
 }
+
+    
