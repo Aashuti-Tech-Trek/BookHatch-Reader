@@ -70,7 +70,9 @@ export default function BookDetailPage({ params }: { params: { id: string } }) {
             <p className="mt-6 text-base md:text-lg leading-relaxed">
               {book.longDescription}
             </p>
-            <Button size="lg" className="mt-8">Start Reading</Button>
+            <Button size="lg" className="mt-8" asChild>
+              <Link href={`/read/${book.id}`}>Start Reading</Link>
+            </Button>
           </div>
         </div>
       </main>
