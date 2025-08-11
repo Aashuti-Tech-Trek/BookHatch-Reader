@@ -4,10 +4,11 @@
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from '@tiptap/extension-placeholder'
+import Underline from '@tiptap/extension-underline'
 import {
   Bold,
   Italic,
-  Underline,
+  Underline as UnderlineIcon,
   Strikethrough,
   List,
   ListOrdered,
@@ -52,7 +53,7 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
                 size="icon"
                 title="Underline"
             >
-                <Underline className="h-4 w-4" />
+                <UnderlineIcon className="h-4 w-4" />
             </Button>
             <Button
                 onClick={() => editor.chain().focus().toggleStrike().run()}
@@ -112,6 +113,7 @@ export function StoryEditor({ content, onChange }: StoryEditorProps) {
   const editor = useEditor({
     extensions: [
         StarterKit,
+        Underline,
         Placeholder.configure({
             placeholder: 'Once upon a time...',
         })
