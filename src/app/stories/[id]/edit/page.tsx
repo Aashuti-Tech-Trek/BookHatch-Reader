@@ -36,12 +36,6 @@ interface Chapter {
     isPublished: boolean;
 }
 
-// For static export, generate params for possible story IDs
-export async function generateStaticParams() {
-  // In a real application, you would fetch your story IDs from a database
-  return books.map(book => ({ id: book.id }));
-}
-
 export default function EditStoryPage() {
   const params = useParams();
   const storyId = Array.isArray(params.id) ? params.id[0] : params.id;
