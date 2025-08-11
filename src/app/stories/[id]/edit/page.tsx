@@ -32,14 +32,14 @@ import { DragDropContext, Droppable, Draggable, type DropResult } from 'react-be
 interface Chapter {
     id: string;
     title: string;
+    content: string; // Add content field
     isPublished: boolean;
 }
 
 // For static export, generate params for possible story IDs
 export async function generateStaticParams() {
   // In a real application, you would fetch your story IDs from a database
-  // For now, returning placeholder IDs
-  return [{ id: 'story-1' }, { id: 'story-2' }];
+  return books.map(book => ({ id: book.id }));
 }
 
 export default function EditStoryPage() {
@@ -52,21 +52,19 @@ export default function EditStoryPage() {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
+    // This effect runs once on the client after the component mounts.
     const foundStory = books.find((b) => b.id === storyId);
     if (foundStory) {
       setStory(foundStory);
       // Placeholder chapters, you would fetch these for the story
-      const initialChapters = [
-        { id: "chapter-1", title: "The Discovery", isPublished: true },
-        { id: "chapter-2", title: "A Fateful Encounter", isPublished: true },
-        { id: "chapter-3", title: "Whispers in the Dark", isPublished: false },
+      const initialChapters: Chapter[] = [
+        { id: "chapter-1", title: "The Discovery", content: "<p>This is the content for chapter 1.</p>", isPublished: true },
+        { id: "chapter-2", title: "A Fateful Encounter", content: "<p>Content for chapter 2 comes here.</p>", isPublished: true },
+        { id: "chapter-3", title: "Whispers in the Dark", content: "<p>And finally, chapter 3 content.</p>", isPublished: false },
       ];
       setChapters(initialChapters);
       setActiveChapterId(initialChapters[0]?.id ?? null);
     } else {
-        // In a real app with a DB, you might redirect or show a proper not found page
-        // For now, we'll handle the case where a new story is being created client-side
         if (storyId === "new-story-placeholder") {
           const newStory: Book = {
             id: 'new-story-placeholder',
@@ -84,20 +82,19 @@ export default function EditStoryPage() {
             notFound();
         }
     }
+    setIsMounted(true);
   }, [storyId]);
 
 
   if (!isMounted) {
-    // You can render a loading state here
     return (
         <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
-            <p>Loading story...</p>
+            <p>Loading story editor...</p>
         </div>
     );
   }
 
   if (!story) {
-    // This can happen briefly before useEffect runs or if a story isn't found
     return (
         <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
             <p>Loading or story not found...</p>
@@ -107,7 +104,7 @@ export default function EditStoryPage() {
   
   const handleAddChapter = () => {
     const newId = `chapter-${chapters.length > 0 ? Math.max(...chapters.map(c => parseInt(c.id.split('-')[1]))) + 1 : 1}`;
-    const newChapter = { id: newId, title: `New Chapter`, isPublished: false };
+    const newChapter: Chapter = { id: newId, title: `New Chapter`, content: "", isPublished: false };
     setChapters([...chapters, newChapter]);
     setActiveChapterId(newId);
   };
@@ -122,6 +119,12 @@ export default function EditStoryPage() {
   const handleChapterTitleChange = (id: string, newTitle: string) => {
     setChapters(chapters.map(chapter => 
         chapter.id === id ? { ...chapter, title: newTitle } : chapter
+    ));
+  };
+  
+  const handleChapterContentChange = (id: string, newContent: string) => {
+    setChapters(chapters.map(chapter =>
+        chapter.id === id ? { ...chapter, content: newContent } : chapter
     ));
   };
 
@@ -281,7 +284,10 @@ export default function EditStoryPage() {
                         </CardHeader>
                         <Separator />
                         <CardContent className="p-0">
-                            <StoryEditor />
+                            <StoryEditor 
+                                content={activeChapter.content}
+                                onChange={(newContent) => handleChapterContentChange(activeChapter.id, newContent)}
+                            />
                         </CardContent>
                     </>
                 ) : (
