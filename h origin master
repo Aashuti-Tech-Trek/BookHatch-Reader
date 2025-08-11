@@ -1,0 +1,161 @@
+[33m2f9ac64[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m)[m dune start reading after this show the book and its chapter s available
+ src/app/profile/page.tsx          | 2 [32m+[m[31m-[m
+ src/components/new-story-form.tsx | 5 [32m+++[m[31m--[m
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+[33m562ad91[m I see this error with the app, reported by NextJS, please fix it. The er
+ src/app/stories/new/page.tsx | 2 [32m+[m[31m-[m
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+[33m6b8d03a[m I see this error with the app, reported by NextJS, please fix it. The er
+ src/app/stories/[id]/edit/page.tsx | 2 [32m+[m[31m-[m
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+[33m6c406b2[m Mystery WIP is not changinga nd the sequence of the chapters to change .
+ package-lock.json                       | 145 [32m+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++[m[31m--[m
+ package.json                            |   2 [32m+[m
+ src/app/stories/[id]/edit/page.tsx      | 109 [32m++++++++++++++++++++++++++++++++[m[31m------------------[m
+ src/components/recommendations-form.tsx |  60 [32m++++++++++++++++++[m[31m----------[m
+ src/lib/data.ts                         |  50 [32m++++++++++++++++++++++[m[31m-[m
+ 5 files changed, 303 insertions(+), 63 deletions(-)
+[33m0536174[m I see this error with the app, reported by NextJS, please fix it. The er
+ src/app/stories/[id]/edit/page.tsx | 40 [32m+++++++++++++++++++++++++++[m[31m-------------[m
+ 1 file changed, 27 insertions(+), 13 deletions(-)
+[33m66bb30d[m switch the barred line on and the pointers and the video adding and phoo
+ src/components/story-editor.tsx | 15 [32m+++++++++[m[31m------[m
+ 1 file changed, 9 insertions(+), 6 deletions(-)
+[33m5d74a9a[m 1. edits like bold italic and other maike them useful change the font ac
+ src/app/stories/[id]/edit/page.tsx      | 15 [32m+++++[m[31m----------[m
+ src/components/story-editor.tsx         | 25 [32m+++++++++++++++++++++[m[31m----[m
+ src/components/story-settings-sheet.tsx | 38 [32m+++++++++++++++++++++++++[m[31m-------------[m
+ 3 files changed, 51 insertions(+), 27 deletions(-)
+[33m6a5bdb2[m this eye gives the contradiction i thing. chapters sequence changing do
+ src/app/stories/[id]/edit/page.tsx | 16 [32m+++++++++[m[31m-------[m
+ 1 file changed, 9 insertions(+), 7 deletions(-)
+[33m58f98b4[m to eidt the chapter's name and other things in the chapter once chapter
+ src/app/stories/[id]/edit/page.tsx | 97 [32m+++++++++++++++++++++++++++++++++++++++++++++++++++++++++[m[31m----------------[m
+ 1 file changed, 76 insertions(+), 21 deletions(-)
+[33m8305704[m in story setting add the image input as well for the cover page and each
+ src/app/stories/[id]/edit/page.tsx      |  5 [32m+++[m[31m--[m
+ src/components/story-settings-sheet.tsx | 25 [32m+++++++++++++++++++++++[m[31m--[m
+ 2 files changed, 26 insertions(+), 4 deletions(-)
+[33m56029a0[m I see this error with the app, reported by NextJS, please fix it. The er
+ src/components/theme-toggle.tsx | 30 [32m++++++++++++++++++++++[m[31m--------[m
+ 1 file changed, 22 insertions(+), 8 deletions(-)
+[33m497009f[m I see this error with the app, reported by NextJS, please fix it. The er
+ src/app/stories/[id]/edit/page.tsx | 9 [32m++++++[m[31m---[m
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+[33m587dc7b[m access all the bottons ike story settingsthe kwewords adding and the cha
+ src/app/stories/[id]/edit/page.tsx      |  56 [32m++++++++++++++++++++++[m[31m---------[m
+ src/components/story-settings-sheet.tsx | 120 [32m+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++[m
+ 2 files changed, 161 insertions(+), 15 deletions(-)
+[33me418710[m I see this error with the app, reported by NextJS, please fix it. The er
+ src/app/stories/[id]/edit/page.tsx | 2 [32m+[m[31m-[m
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+[33mc2123d0[m simialr to currently readinga nd other make one more for write your book
+ src/app/profile/page.tsx           |  43 [32m++++++++++++++++++++++[m[31m-[m
+ src/app/stories/[id]/edit/page.tsx | 134 [32m++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++[m
+ src/app/stories/new/page.tsx       |  39 [32m+++++++++++++++++++++[m
+ src/components/new-story-form.tsx  |  84 [32m+++++++++++++++++++++++++++++++++++++++++++++[m
+ src/components/story-editor.tsx    |  59 [32m++++++++++++++++++++++++++++++++[m
+ 5 files changed, 358 insertions(+), 1 deletion(-)
+[33m1b6876c[m after saving the profile update the page with that content only and addi
+ src/app/profile/page.tsx              | 24 [32m+++++++++++++++++[m[31m-------[m
+ src/components/edit-profile-sheet.tsx | 59 [32m++++++++++++++++++++++++++++++++++++++++++++++++++++[m[31m-------[m
+ 2 files changed, 69 insertions(+), 14 deletions(-)
+[33m49d3658[m make one more profile page directing from the main page top right profil
+ src/app/page.tsx                      |   2 [32m+[m[31m-[m
+ src/app/profile/page.tsx              | 104 [32m+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++[m
+ src/components/edit-profile-sheet.tsx |  64 [32m++++++++++++++++++++++++++++++++++++++++++[m
+ src/components/ui/textarea.tsx        |   1 [32m+[m
+ 4 files changed, 170 insertions(+), 1 deletion(-)
+[33maa461a4[m the top right is my prfile where it is editable and add my perosnla info
+ src/app/books/[id]/page.tsx |  1 [32m+[m
+ src/app/users/[id]/page.tsx | 14 [32m+++++++[m[31m-------[m
+ 2 files changed, 8 insertions(+), 7 deletions(-)
+[33m78c358a[m I see this error with the app, reported by NextJS, please fix it. The er
+ package-lock.json              |  10 [32m+++++[m
+ package.json                   |   1 [32m+[m
+ src/app/page.tsx               | 166 [32m+++++++++++++++++++++++++++++++++++++++++++++++++[m[31m---------------------------[m
+ src/components/ui/carousel.tsx |   1 [32m+[m
+ 4 files changed, 120 insertions(+), 58 deletions(-)
+[33m071d201[m i cna't see the changes in the view page and i want a profile of the per
+ src/app/page.tsx               | 110 [32m++++++++++++++++++++++++++++++++++++++++++++++++++[m[31m--------------------------[m
+ src/components/ui/carousel.tsx |  12 [32m++++[m[31m-----[m
+ 2 files changed, 78 insertions(+), 44 deletions(-)
+[33md111738[m 🔍 Keyword-Based Zonar Search & Discovery Enable smart tagging and keywo
+ src/app/books/[id]/page.tsx |  4 [32m++[m[31m--[m
+ src/app/users/[id]/page.tsx | 90 [32m++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++[m
+ 2 files changed, 92 insertions(+), 2 deletions(-)
+[33me90f2c7[m Initial prototype
+ .idx/icon.png                                    | Bin [31m0[m -> [32m23008[m bytes
+ .modified                                        |   0
+ docs/blueprint.md                                |  19 [32m+++++++[m
+ src/ai/dev.ts                                    |   5 [32m+[m[31m-[m
+ src/ai/flows/generate-reading-recommendations.ts |  61 [32m+++++++++++++++++++++[m
+ src/app/books/[id]/page.tsx                      |  72 [32m+++++++++++++++++++++++++[m
+ src/app/globals.css                              |  58 [32m++++++++++[m[31m----------[m
+ src/app/layout.tsx                               |  22 [32m++++[m[31m----[m
+ src/app/page.tsx                                 |  77 [32m++++++++++++++++++++++++++[m[31m-[m
+ src/app/recommendations/page.tsx                 |  38 [32m++++++++++++++[m
+ src/components/book-card.tsx                     |  45 [32m++++++++++++++++[m
+ src/components/recommendations-form.tsx          | 166 [32m++++++++++++++++++++++++++++++++++++++++++++++++++++++++++[m
+ src/components/theme-toggle.tsx                  |  45 [32m++++++++++++++++[m
+ src/lib/actions/recommendations.ts               |  13 [32m+++++[m
+ src/lib/data.ts                                  | 114 [32m++++++++++++++++++++++++++++++++++++++++[m
+ tailwind.config.ts                               |   4 [32m+[m[31m-[m
+ 16 files changed, 695 insertions(+), 44 deletions(-)
+[33mcd1e7bf[m initial scaffold
+ .gitignore                          |    45 [32m+[m
+ .idx/dev.nix                        |    44 [32m+[m
+ README.md                           |     5 [32m+[m
+ apphosting.yaml                     |     7 [32m+[m
+ components.json                     |    21 [32m+[m
+ next.config.ts                      |    23 [32m+[m
+ package-lock.json                   | 10148 [32m+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++[m
+ package.json                        |    67 [32m+[m
+ postcss.config.mjs                  |     8 [32m+[m
+ src/ai/dev.ts                       |     1 [32m+[m
+ src/ai/genkit.ts                    |     7 [32m+[m
+ src/app/favicon.ico                 |   Bin [31m0[m -> [32m15086[m bytes
+ src/app/globals.css                 |    88 [32m+[m
+ src/app/layout.tsx                  |    24 [32m+[m
+ src/app/page.tsx                    |     3 [32m+[m
+ src/components/ui/accordion.tsx     |    58 [32m+[m
+ src/components/ui/alert-dialog.tsx  |   141 [32m+[m
+ src/components/ui/alert.tsx         |    59 [32m+[m
+ src/components/ui/avatar.tsx        |    50 [32m+[m
+ src/components/ui/badge.tsx         |    36 [32m+[m
+ src/components/ui/button.tsx        |    56 [32m+[m
+ src/components/ui/calendar.tsx      |    70 [32m+[m
+ src/components/ui/card.tsx          |    79 [32m+[m
+ src/components/ui/carousel.tsx      |   262 [32m++[m
+ src/components/ui/chart.tsx         |   365 [32m+++[m
+ src/components/ui/checkbox.tsx      |    30 [32m+[m
+ src/components/ui/collapsible.tsx   |    11 [32m+[m
+ src/components/ui/dialog.tsx        |   122 [32m+[m
+ src/components/ui/dropdown-menu.tsx |   200 [32m++[m
+ src/components/ui/form.tsx          |   178 [32m++[m
+ src/components/ui/input.tsx         |    22 [32m+[m
+ src/components/ui/label.tsx         |    26 [32m+[m
+ src/components/ui/menubar.tsx       |   256 [32m++[m
+ src/components/ui/popover.tsx       |    31 [32m+[m
+ src/components/ui/progress.tsx      |    28 [32m+[m
+ src/components/ui/radio-group.tsx   |    44 [32m+[m
+ src/components/ui/scroll-area.tsx   |    48 [32m+[m
+ src/components/ui/select.tsx        |   160 [32m++[m
+ src/components/ui/separator.tsx     |    31 [32m+[m
+ src/components/ui/sheet.tsx         |   140 [32m+[m
+ src/components/ui/sidebar.tsx       |   763 [32m++++++[m
+ src/components/ui/skeleton.tsx      |    15 [32m+[m
+ src/components/ui/slider.tsx        |    28 [32m+[m
+ src/components/ui/switch.tsx        |    29 [32m+[m
+ src/components/ui/table.tsx         |   117 [32m+[m
+ src/components/ui/tabs.tsx          |    55 [32m+[m
+ src/components/ui/textarea.tsx      |    21 [32m+[m
+ src/components/ui/toast.tsx         |   129 [32m+[m
+ src/components/ui/toaster.tsx       |    35 [32m+[m
+ src/components/ui/tooltip.tsx       |    30 [32m+[m
+ src/hooks/use-mobile.tsx            |    19 [32m+[m
+ src/hooks/use-toast.ts              |   194 [32m++[m
+ src/lib/utils.ts                    |     6 [32m+[m
+ tailwind.config.ts                  |    99 [32m+[m
+ tsconfig.json                       |    27 [32m+[m
+ 55 files changed, 14561 insertions(+)
