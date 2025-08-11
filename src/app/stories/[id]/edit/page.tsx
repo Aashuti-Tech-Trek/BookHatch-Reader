@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useParams, notFound } from "next/navigation";
+import { useParams } from "next/navigation";
 import { books, type Book } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,7 +32,7 @@ import { DragDropContext, Droppable, Draggable, type DropResult } from 'react-be
 interface Chapter {
     id: string;
     title: string;
-    content: string; // Add content field
+    content: string;
     isPublished: boolean;
 }
 
@@ -45,51 +45,86 @@ export default function EditStoryPage() {
   const [activeChapterId, setActiveChapterId] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
 
+  // Load initial data from localStorage or fallback to mock data
   useEffect(() => {
     setIsMounted(true);
-    const foundStory = books.find((b) => b.id === storyId);
-    if (foundStory) {
-      setStory(foundStory);
-      // Placeholder chapters, you would fetch these for the story
-      const initialChapters: Chapter[] = [
-        { id: "chapter-1", title: "The Discovery", content: "<p>This is the content for chapter 1.</p>", isPublished: true },
-        { id: "chapter-2", title: "A Fateful Encounter", content: "<p>Content for chapter 2 comes here.</p>", isPublished: true },
-        { id: "chapter-3", title: "Whispers in the Dark", content: "<p>And finally, chapter 3 content.</p>", isPublished: false },
-      ];
-      setChapters(initialChapters);
-      setActiveChapterId(initialChapters[0]?.id ?? null);
+    let initialStory: Book | undefined;
+    let initialChapters: Chapter[] = [];
+
+    const savedStory = localStorage.getItem(`story-${storyId}`);
+    const savedChapters = localStorage.getItem(`chapters-${storyId}`);
+
+    if (savedStory && savedChapters) {
+      initialStory = JSON.parse(savedStory);
+      initialChapters = JSON.parse(savedChapters);
     } else {
-        if (storyId === "new-story-placeholder") {
-          const newStory: Book = {
-            id: 'new-story-placeholder',
-            title: 'Untitled Story',
-            author: 'Alex Doe',
-            description: 'A new story begins...',
-            longDescription: 'Start writing your story here.',
-            coverImage: 'https://placehold.co/300x450.png',
-            genre: 'Fantasy'
-          };
-          setStory(newStory);
-          setChapters([]);
-          setActiveChapterId(null);
-        } else {
-            // In a real app, you might want to redirect to a 404 page
-        }
+      const foundStory = books.find((b) => b.id === storyId);
+      if (foundStory) {
+        initialStory = foundStory;
+        // Placeholder chapters for first-time load
+        initialChapters = [
+          { id: "chapter-1", title: "The Discovery", content: "<p>This is the content for chapter 1.</p>", isPublished: true },
+          { id: "chapter-2", title: "A Fateful Encounter", content: "<p>Content for chapter 2 comes here.</p>", isPublished: true },
+          { id: "chapter-3", title: "Whispers in the Dark", content: "<p>And finally, chapter 3 content.</p>", isPublished: false },
+        ];
+      } else if (storyId === "new-story-placeholder") {
+        initialStory = {
+          id: 'new-story-placeholder',
+          title: 'Untitled Story',
+          author: 'Alex Doe',
+          description: 'A new story begins...',
+          longDescription: 'Start writing your story here.',
+          coverImage: 'https://placehold.co/300x450.png',
+          genre: 'Fantasy'
+        };
+        initialChapters = [];
+      }
+    }
+    
+    setStory(initialStory);
+    setChapters(initialChapters);
+    if(initialChapters.length > 0) {
+      setActiveChapterId(initialChapters[0]?.id ?? null);
     }
   }, [storyId]);
+  
+  // Save story to localStorage whenever it changes
+  useEffect(() => {
+    if (story && isMounted) {
+      localStorage.setItem(`story-${story.id}`, JSON.stringify(story));
+    }
+  }, [story, isMounted]);
+
+  // Save chapters to localStorage whenever they change
+  useEffect(() => {
+    if (chapters.length > 0 && storyId && isMounted) {
+      localStorage.setItem(`chapters-${storyId}`, JSON.stringify(chapters));
+    } else if (isMounted && storyId) {
+      // If all chapters are deleted, remove from storage
+      localStorage.removeItem(`chapters-${storyId}`);
+    }
+  }, [chapters, storyId, isMounted]);
 
 
+  if (!isMounted) {
+    return (
+        <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+            <p>Loading Editor...</p>
+        </div>
+    );
+  }
+  
   if (!story) {
     return (
         <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
-            <p>Loading or story not found...</p>
+            <p>Story not found...</p>
         </div>
     );
   }
   
   const handleAddChapter = () => {
     const newId = `chapter-${chapters.length > 0 ? Math.max(...chapters.map(c => parseInt(c.id.split('-')[1]))) + 1 : 1}`;
-    const newChapter: Chapter = { id: newId, title: `New Chapter`, content: "", isPublished: false };
+    const newChapter: Chapter = { id: newId, title: `New Chapter`, content: "<p></p>", isPublished: false };
     setChapters([...chapters, newChapter]);
     setActiveChapterId(newId);
   };
@@ -291,5 +326,3 @@ export default function EditStoryPage() {
     </div>
   );
 }
-
-    
