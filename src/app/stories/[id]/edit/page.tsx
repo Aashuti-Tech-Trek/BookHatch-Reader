@@ -58,16 +58,42 @@ export default function EditStoryPage() {
       setChapters(initialChapters);
       setActiveChapterId(initialChapters[0]?.id ?? null);
     } else {
-        notFound();
+        // In a real app with a DB, you might redirect or show a proper not found page
+        // For now, we'll handle the case where a new story is being created client-side
+        if (storyId === "new-story-placeholder") {
+          const newStory: Book = {
+            id: 'new-story-placeholder',
+            title: 'Untitled Story',
+            author: 'Alex Doe',
+            description: 'A new story begins...',
+            longDescription: 'Start writing your story here.',
+            coverImage: 'https://placehold.co/300x450.png',
+            genre: 'Fantasy'
+          };
+          setStory(newStory);
+          setChapters([]);
+          setActiveChapterId(null);
+        } else {
+            notFound();
+        }
     }
   }, [storyId]);
 
 
-  if (!story || !isMounted) {
+  if (!isMounted) {
     // You can render a loading state here
     return (
         <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
             <p>Loading story...</p>
+        </div>
+    );
+  }
+
+  if (!story) {
+    // This can happen briefly before useEffect runs or if a story isn't found
+    return (
+        <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+            <p>Loading or story not found...</p>
         </div>
     );
   }
@@ -180,6 +206,7 @@ export default function EditStoryPage() {
                     <CardTitle>Chapters</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-1">
+                  {isMounted && (
                     <DragDropContext onDragEnd={onDragEnd}>
                         <Droppable droppableId="chapters">
                             {(provided) => (
@@ -223,6 +250,7 @@ export default function EditStoryPage() {
                             )}
                         </Droppable>
                     </DragDropContext>
+                  )}
                 </CardContent>
                 <CardFooter>
                     <Button variant="outline" className="w-full" onClick={handleAddChapter}>

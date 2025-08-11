@@ -9,6 +9,12 @@ import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { BookOpen } from "lucide-react";
 
+export async function generateStaticParams() {
+  return books.map((book) => ({
+    id: book.id,
+  }));
+}
+
 export default function BookDetailPage({ params }: { params: { id: string } }) {
   const book = books.find((b) => b.id === params.id);
 
