@@ -20,6 +20,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  transpilePackages: ['react-beautiful-dnd'],
 };
 
 export default nextConfig;
