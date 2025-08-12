@@ -8,27 +8,44 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { genres } from "@/lib/data";
+import { genres, type Book } from "@/lib/data";
 import { Badge } from "./ui/badge";
-import { useState } from "react";
-import { BookUp, PlusCircle } from "lucide-react";
+import { useState, useId } from "react";
+import { BookUp } from "lucide-react";
 
 export function NewStoryForm() {
     const router = useRouter();
+    const [title, setTitle] = useState('');
+    const [summary, setSummary] = useState('');
     const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
 
     const handleGenreToggle = (genre: string) => {
         setSelectedGenres(prev => 
-            prev.includes(genre) ? prev.filter(g => g !== genre) : [...prev, genre]
+            prev.includes(genre) ? prev.filter(g => g !== genre) : [genre] // Only allow one genre for simplicity
         )
     }
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, you'd save the data and get a new story ID from the backend.
-    // For now, we'll use a placeholder slug and client-side navigation.
-    const newStorySlug = "new-story";
-    router.push(`/stories/${newStorySlug}/edit`);
+    
+    const slug = title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
+    const newStoryId = slug || `new-story-${Date.now()}`;
+
+    const newStory: Book = {
+      id: newStoryId,
+      slug: newStoryId,
+      title: title || "Untitled Story",
+      author: 'Alex Doe', // Placeholder author
+      description: summary,
+      longDescription: 'Start writing your story here.',
+      coverImage: 'https://placehold.co/300x450.png',
+      genre: selectedGenres[0] || 'Fantasy'
+    };
+
+    localStorage.setItem(`story-${newStory.id}`, JSON.stringify(newStory));
+    localStorage.setItem(`chapters-${newStory.id}`, JSON.stringify([]));
+
+    router.push(`/stories/${newStory.slug}/edit`);
   };
 
   return (
@@ -37,11 +54,11 @@ export function NewStoryForm() {
         <CardContent className="p-6 space-y-6">
           <div className="space-y-2">
             <Label htmlFor="title" className="text-lg font-semibold">Story Title</Label>
-            <Input id="title" placeholder="e.g., The Last Starlight" required />
+            <Input id="title" placeholder="e.g., The Last Starlight" required value={title} onChange={(e) => setTitle(e.target.value)} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="summary" className="text-lg font-semibold">Summary</Label>
-            <Textarea id="summary" placeholder="A brief, enticing summary of your story." required />
+            <Textarea id="summary" placeholder="A brief, enticing summary of your story." required value={summary} onChange={(e) => setSummary(e.target.value)} />
           </div>
            <div className="space-y-2">
             <Label className="text-lg font-semibold">Genre(s)</Label>

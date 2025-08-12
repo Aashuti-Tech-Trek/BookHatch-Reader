@@ -12,12 +12,8 @@ import {
   BookOpen,
   PlusCircle,
   Settings,
-  Trash2,
-  FileText,
-  GripVertical,
   Eye,
   EyeOff,
-  Save,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { StoryEditor } from "@/components/story-editor";
@@ -26,11 +22,12 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { StorySettingsSheet } from "@/components/story-settings-sheet";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
-import { DragDropContext, Droppable, Draggable, type DropResult } from 'react-beautiful-dnd';
+import { type DropResult } from 'react-beautiful-dnd';
+import dynamic from 'next/dynamic';
 
+const ChapterListDnd = dynamic(() => import('@/components/chapter-list-dnd'), { ssr: false });
 
-interface Chapter {
+export interface Chapter {
     id: string;
     title: string;
     content: string;
@@ -140,12 +137,6 @@ export default function EditStoryPage() {
         setActiveChapterId(chapters.length > 1 ? chapters.filter(c => c.id !== id)[0].id : null);
     }
   };
-
-  const handleChapterTitleChange = (id: string, newTitle: string) => {
-    setChapters(chapters.map(chapter => 
-        chapter.id === id ? { ...chapter, title: newTitle } : chapter
-    ));
-  };
   
   const handleChapterContentChange = (id: string, newContent: string) => {
     setChapters(chapters.map(chapter =>
@@ -205,10 +196,10 @@ export default function EditStoryPage() {
             </span>
           </Link>
           <div className="flex items-center gap-4">
+            <Button onClick={handlePublishAll}>Publish All</Button>
             <Button variant="secondary" onClick={handleSaveDraft} disabled={saveState === 'saving'}>
                 {saveState === 'saving' ? 'Saved!' : 'Save Draft'}
             </Button>
-            <Button onClick={handlePublishAll}>Publish All</Button>
             <ThemeToggle />
           </div>
         </div>
@@ -257,52 +248,15 @@ export default function EditStoryPage() {
                 <CardHeader>
                     <CardTitle>Chapters</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-1">
-                  {isMounted && (
-                    <DragDropContext onDragEnd={onDragEnd}>
-                        <Droppable droppableId="chapters">
-                            {(provided) => (
-                                <div {...provided.droppableProps} ref={provided.innerRef}>
-                                    {chapters.map((chapter, index) => (
-                                         <Draggable key={chapter.id} draggableId={chapter.id} index={index}>
-                                            {(provided, snapshot) => (
-                                                <div 
-                                                    ref={provided.innerRef}
-                                                    {...provided.draggableProps}
-                                                    {...provided.dragHandleProps}
-                                                    className={cn(
-                                                        "group flex items-center justify-between p-2 rounded-md hover:bg-muted cursor-pointer",
-                                                        activeChapterId === chapter.id && "bg-muted",
-                                                        snapshot.isDragging && "bg-primary/20 shadow-lg"
-                                                    )}
-                                                    onClick={() => setActiveChapterId(chapter.id)}
-                                                >
-                                                    <div className="flex items-center gap-2">
-                                                        <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />
-                                                        <FileText className="h-4 w-4 flex-shrink-0" />
-                                                        <span className="truncate">{chapter.title}</span>
-                                                    </div>
-                                                    <div className="flex items-center">
-                                                        <Badge variant={chapter.isPublished ? "secondary" : "outline"} className="mr-2 h-5">
-                                                            {chapter.isPublished ? 'Published' : 'Draft'}
-                                                        </Badge>
-                                                        <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={(e) => { e.stopPropagation(); handleTogglePublish(chapter.id);}} title={chapter.isPublished ? "Unpublish" : "Publish"}>
-                                                            {chapter.isPublished ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                                                        </Button>
-                                                        <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive/70 hover:text-destructive opacity-0 group-hover:opacity-100" onClick={(e) => { e.stopPropagation(); handleDeleteChapter(chapter.id)}}>
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </Draggable>
-                                    ))}
-                                    {provided.placeholder}
-                                </div>
-                            )}
-                        </Droppable>
-                    </DragDropContext>
-                  )}
+                <CardContent className="space-y-1 p-0">
+                  <ChapterListDnd 
+                    chapters={chapters}
+                    activeChapterId={activeChapterId}
+                    onDragEnd={onDragEnd}
+                    setActiveChapterId={setActiveChapterId}
+                    handleTogglePublish={handleTogglePublish}
+                    handleDeleteChapter={handleDeleteChapter}
+                  />
                 </CardContent>
                 <CardFooter>
                     <Button variant="outline" className="w-full" onClick={handleAddChapter}>
@@ -320,7 +274,10 @@ export default function EditStoryPage() {
                             <Input 
                                 type="text" 
                                 value={activeChapter.title}
-                                onChange={(e) => handleChapterTitleChange(activeChapter.id, e.target.value)}
+                                onChange={(e) => {
+                                    const newTitle = e.target.value;
+                                    setChapters(chapters.map(c => c.id === activeChapter.id ? {...c, title: newTitle} : c))
+                                }}
                                 className="text-3xl font-bold font-headline bg-transparent border-none focus:ring-0 p-0 w-full h-auto" 
                             />
                         </CardHeader>
@@ -344,5 +301,3 @@ export default function EditStoryPage() {
     </div>
   );
 }
-
-    

@@ -12,12 +12,8 @@ import {
   BookOpen,
   PlusCircle,
   Settings,
-  Trash2,
-  FileText,
-  GripVertical,
   Eye,
   EyeOff,
-  Save,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { StoryEditor } from "@/components/story-editor";
@@ -26,11 +22,12 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { StorySettingsSheet } from "@/components/story-settings-sheet";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
-import { DragDropContext, Droppable, Draggable, type DropResult } from 'react-beautiful-dnd';
+import { type DropResult } from 'react-beautiful-dnd';
+import dynamic from 'next/dynamic';
 
+const ChapterListDnd = dynamic(() => import('@/components/chapter-list-dnd'), { ssr: false });
 
-interface Chapter {
+export interface Chapter {
     id: string;
     title: string;
     content: string;
@@ -55,18 +52,18 @@ export default function EditStoryPage() {
     let initialStory: Book | undefined;
     let initialChapters: Chapter[] = [];
 
-    const foundStory = books.find((b) => b.slug === storySlug);
-
-    const storyId = storySlug === 'new-story' ? 'new-story-placeholder' : foundStory?.id;
-    if (!storyId) return;
-
+    const storyId = storySlug === 'new' ? 'new-story-placeholder' : storySlug;
+    
     const savedStory = localStorage.getItem(`story-${storyId}`);
     const savedChapters = localStorage.getItem(`chapters-${storyId}`);
 
-    if (savedStory && savedChapters) {
+    if (savedStory) {
       initialStory = JSON.parse(savedStory);
-      initialChapters = JSON.parse(savedChapters);
+      if(savedChapters) {
+        initialChapters = JSON.parse(savedChapters);
+      }
     } else {
+      const foundStory = books.find((b) => b.slug === storySlug);
       if (foundStory) {
         initialStory = foundStory;
         // Placeholder chapters for first-time load
@@ -75,7 +72,7 @@ export default function EditStoryPage() {
           { id: "chapter-2", title: "A Fateful Encounter", content: "<p>Content for chapter 2 comes here.</p>", isPublished: true },
           { id: "chapter-3", title: "Whispers in the Dark", content: "<p>And finally, chapter 3 content.</p>", isPublished: false },
         ];
-      } else if (storySlug === "new-story") {
+      } else if (storySlug === "new") {
         initialStory = {
           id: 'new-story-placeholder',
           slug: 'new-story',
@@ -106,11 +103,12 @@ export default function EditStoryPage() {
 
   // Save chapters to localStorage whenever they change
   useEffect(() => {
-    if (story && chapters.length > 0 && isMounted) {
-      localStorage.setItem(`chapters-${story.id}`, JSON.stringify(chapters));
-    } else if (isMounted && story) {
-      // If all chapters are deleted, remove from storage
-      localStorage.removeItem(`chapters-${story.id}`);
+    if (story && isMounted) {
+       if (chapters.length > 0) {
+           localStorage.setItem(`chapters-${story.id}`, JSON.stringify(chapters));
+       } else {
+           localStorage.removeItem(`chapters-${story.id}`);
+       }
     }
   }, [chapters, story, isMounted]);
 
@@ -144,12 +142,6 @@ export default function EditStoryPage() {
         setActiveChapterId(chapters.length > 1 ? chapters.filter(c => c.id !== id)[0].id : null);
     }
   };
-
-  const handleChapterTitleChange = (id: string, newTitle: string) => {
-    setChapters(chapters.map(chapter => 
-        chapter.id === id ? { ...chapter, title: newTitle } : chapter
-    ));
-  };
   
   const handleChapterContentChange = (id: string, newContent: string) => {
     setChapters(chapters.map(chapter =>
@@ -167,21 +159,24 @@ export default function EditStoryPage() {
     setStory(prevStory => {
       if (!prevStory) return undefined;
       const newSlug = updatedStory.title ? updatedStory.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '') : prevStory.slug;
-      const newStory = { ...prevStory, ...updatedStory, slug: newSlug };
+      
+      let finalStory = { ...prevStory, ...updatedStory, slug: newSlug };
 
-      // If the slug changed, update the URL
-      if (newSlug !== storySlug && prevStory.id === 'new-story-placeholder') {
-         const finalStory = {...newStory, id: newSlug}; // Give it a real ID now
-         localStorage.removeItem(`story-${prevStory.id}`);
+      if (prevStory.id === 'new-story-placeholder') {
+         // This is the first save for a new story.
+         // Give it a real ID based on the slug.
+         finalStory = {...finalStory, id: newSlug};
+         localStorage.removeItem(`story-${prevStory.id}`); // remove placeholder
          localStorage.setItem(`story-${finalStory.id}`, JSON.stringify(finalStory));
          router.replace(`/stories/${newSlug}/edit`);
          return finalStory;
-      } else if (newSlug !== storySlug) {
+      } else if (newSlug !== prevStory.slug) {
+        // The slug has changed for an existing story
         localStorage.removeItem(`story-${prevStory.id}`);
         router.replace(`/stories/${newSlug}/edit`);
       }
       
-      return newStory;
+      return finalStory;
     });
   };
 
@@ -224,10 +219,10 @@ export default function EditStoryPage() {
             </span>
           </Link>
           <div className="flex items-center gap-4">
+             <Button onClick={handlePublishAll}>Publish All</Button>
             <Button variant="secondary" onClick={handleSaveDraft} disabled={saveState === 'saving'}>
                 {saveState === 'saving' ? 'Saved!' : 'Save Draft'}
             </Button>
-            <Button onClick={handlePublishAll}>Publish All</Button>
             <ThemeToggle />
           </div>
         </div>
@@ -276,52 +271,15 @@ export default function EditStoryPage() {
                 <CardHeader>
                     <CardTitle>Chapters</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-1">
-                  {isMounted && (
-                    <DragDropContext onDragEnd={onDragEnd}>
-                        <Droppable droppableId="chapters">
-                            {(provided) => (
-                                <div {...provided.droppableProps} ref={provided.innerRef}>
-                                    {chapters.map((chapter, index) => (
-                                         <Draggable key={chapter.id} draggableId={chapter.id} index={index}>
-                                            {(provided, snapshot) => (
-                                                <div 
-                                                    ref={provided.innerRef}
-                                                    {...provided.draggableProps}
-                                                    {...provided.dragHandleProps}
-                                                    className={cn(
-                                                        "group flex items-center justify-between p-2 rounded-md hover:bg-muted cursor-pointer",
-                                                        activeChapterId === chapter.id && "bg-muted",
-                                                        snapshot.isDragging && "bg-primary/20 shadow-lg"
-                                                    )}
-                                                    onClick={() => setActiveChapterId(chapter.id)}
-                                                >
-                                                    <div className="flex items-center gap-2">
-                                                        <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />
-                                                        <FileText className="h-4 w-4 flex-shrink-0" />
-                                                        <span className="truncate">{chapter.title}</span>
-                                                    </div>
-                                                    <div className="flex items-center">
-                                                        <Badge variant={chapter.isPublished ? "secondary" : "outline"} className="mr-2 h-5">
-                                                            {chapter.isPublished ? 'Published' : 'Draft'}
-                                                        </Badge>
-                                                        <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={(e) => { e.stopPropagation(); handleTogglePublish(chapter.id);}} title={chapter.isPublished ? "Unpublish" : "Publish"}>
-                                                            {chapter.isPublished ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                                                        </Button>
-                                                        <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive/70 hover:text-destructive opacity-0 group-hover:opacity-100" onClick={(e) => { e.stopPropagation(); handleDeleteChapter(chapter.id)}}>
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </Draggable>
-                                    ))}
-                                    {provided.placeholder}
-                                </div>
-                            )}
-                        </Droppable>
-                    </DragDropContext>
-                  )}
+                <CardContent className="space-y-1 p-0">
+                  <ChapterListDnd 
+                    chapters={chapters}
+                    activeChapterId={activeChapterId}
+                    onDragEnd={onDragEnd}
+                    setActiveChapterId={setActiveChapterId}
+                    handleTogglePublish={handleTogglePublish}
+                    handleDeleteChapter={handleDeleteChapter}
+                  />
                 </CardContent>
                 <CardFooter>
                     <Button variant="outline" className="w-full" onClick={handleAddChapter}>
@@ -339,7 +297,10 @@ export default function EditStoryPage() {
                             <Input 
                                 type="text" 
                                 value={activeChapter.title}
-                                onChange={(e) => handleChapterTitleChange(activeChapter.id, e.target.value)}
+                                onChange={(e) => {
+                                    const newTitle = e.target.value;
+                                    setChapters(chapters.map(c => c.id === activeChapter.id ? {...c, title: newTitle} : c))
+                                }}
                                 className="text-3xl font-bold font-headline bg-transparent border-none focus:ring-0 p-0 w-full h-auto" 
                             />
                         </CardHeader>
@@ -363,6 +324,3 @@ export default function EditStoryPage() {
     </div>
   );
 }
-
-
-    
