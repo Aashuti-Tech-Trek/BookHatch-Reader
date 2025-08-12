@@ -2,13 +2,13 @@
 "use client";
 
 import { createContext, useContext } from 'react';
-import type { User, Auth, UserCredential } from 'firebase/auth';
+import type { User, UserCredential } from 'firebase/auth';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   signIn: (email: string, pass: string) => Promise<UserCredential>;
-  signUp: (email: string, pass: string) => Promise<UserCredential>;
+  signUp: (name: string, email: string, pass: string) => Promise<UserCredential>;
   signOut: () => Promise<void>;
   signInWithGoogle: () => Promise<UserCredential>;
 }
