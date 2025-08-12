@@ -1,4 +1,3 @@
-
 // src/ai/flows/generate-cover-image.ts
 'use server';
 /**
@@ -28,16 +27,18 @@ const generateCoverImageFlow = ai.defineFlow(
     outputSchema: GenerateCoverImageOutputSchema,
   },
   async input => {
-    // Using a free placeholder image service as a stable alternative.
-    // This simulates fetching a new, unique image based on some input detail,
-    // similar to how a generative AI would work but without the potential for failure.
-    // The seed ensures we get a different image for different inputs.
-    const seed = encodeURIComponent(`${input.title}-${input.genre}`);
-    const imageUrl = `https://picsum.photos/seed/${seed}/400/600`;
+    const {media} = await ai.generate({
+      model: 'googleai/gemini-2.0-flash-preview-image-generation',
+      prompt: `A stunning, high-quality book cover for a ${input.genre} book titled "${input.title}". The story is about: ${input.summary}. The cover should be visually appealing and suitable for a best-selling novel. Avoid text on the cover.`,
+      config: {
+        responseModalities: ['TEXT', 'IMAGE'],
+      },
+    });
 
-    // To simulate a network delay similar to a real AI model
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    if (!media) {
+      throw new Error('Image generation failed to return media.');
+    }
 
-    return {imageUrl};
+    return {imageUrl: media.url};
   }
 );
