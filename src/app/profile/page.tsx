@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { EditProfileSheet } from "@/components/edit-profile-sheet";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { useAuth } from "@/hooks/use-auth";
 
 export interface UserProfile {
   name: string;
@@ -21,6 +22,7 @@ export interface UserProfile {
 }
 
 export default function MyProfilePage() {
+  const { user: authUser } = useAuth();
   const [user, setUser] = useState<UserProfile>({
     name: "Alex Doe",
     bio: "An avid reader of science fiction and fantasy. Always looking for the next great adventure between the pages.",
@@ -30,7 +32,8 @@ export default function MyProfilePage() {
   const currentlyReading = books.slice(0, 2);
   const readHistory = books.slice(2, 5);
   const wishlist = books.slice(5, 7);
-  const myStories = books.slice(0,2); // Show two books now
+  // Filter stories to only show those by the current mock user "Alex Doe"
+  const myStories = books.filter(book => book.author === user.name);
 
   const handleProfileUpdate = (newProfile: UserProfile) => {
     setUser(newProfile);
