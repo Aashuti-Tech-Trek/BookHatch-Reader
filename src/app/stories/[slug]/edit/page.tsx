@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -24,6 +25,7 @@ import { StorySettingsSheet } from "@/components/story-settings-sheet";
 import { Input } from "@/components/ui/input";
 import { type DropResult } from 'react-beautiful-dnd';
 import dynamic from 'next/dynamic';
+import { v4 as uuidv4 } from 'uuid';
 
 const ChapterListDnd = dynamic(() => import('@/components/chapter-list-dnd'), { ssr: false });
 
@@ -146,7 +148,7 @@ export default function EditStoryPage() {
   }
   
   const handleAddChapter = () => {
-    const newId = `chapter-${chapters.length > 0 ? Math.max(...chapters.map(c => parseInt(c.id.split('-')[1]))) + 1 : 1}`;
+    const newId = uuidv4();
     const newChapter: Chapter = { id: newId, title: `New Chapter`, content: "<p></p>", isPublished: false };
     setChapters([...chapters, newChapter]);
     setActiveChapterId(newId);

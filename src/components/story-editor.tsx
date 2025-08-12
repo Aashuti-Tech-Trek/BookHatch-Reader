@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEditor, EditorContent } from "@tiptap/react";
+import { useEditor, EditorContent, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from '@tiptap/extension-placeholder'
 import Underline from '@tiptap/extension-underline'
@@ -14,19 +14,44 @@ import {
   ListOrdered,
   Heading1,
   Heading2,
-  Heading3
+  Heading3,
+  Sparkles,
+  Loader2
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
+import { continueStoryAction } from "@/lib/actions/stories";
+import { useTransition } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface StoryEditorProps {
     content: string;
     onChange: (richText: string) => void;
 }
 
-const EditorToolbar = ({ editor }: { editor: any }) => {
+const EditorToolbar = ({ editor }: { editor: Editor | null }) => {
+    const [isGenerating, startTransition] = useTransition();
+    const { toast } = useToast();
+
     if (!editor) {
         return null;
+    }
+
+    const handleGenerateText = () => {
+        startTransition(async () => {
+            const currentText = editor.getText();
+            const result = await continueStoryAction(currentText);
+
+            if (result.continuation) {
+                editor.chain().focus().insertContent(` ${result.continuation}`).run();
+            } else {
+                 toast({
+                    variant: "destructive",
+                    title: "Generation Failed",
+                    description: result.error || "Could not generate text. Please try again.",
+                });
+            }
+        });
     }
 
     return (
@@ -104,6 +129,16 @@ const EditorToolbar = ({ editor }: { editor: any }) => {
                 title="Ordered List"
             >
                 <ListOrdered className="h-4 w-4" />
+            </Button>
+            <Separator orientation="vertical" className="h-6 mx-1" />
+             <Button
+                onClick={handleGenerateText}
+                variant='ghost'
+                size="icon"
+                title="Generate Text"
+                disabled={isGenerating}
+            >
+                {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
             </Button>
         </div>
     );
