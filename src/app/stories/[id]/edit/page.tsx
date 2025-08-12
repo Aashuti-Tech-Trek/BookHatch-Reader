@@ -74,6 +74,7 @@ export default function EditStoryPage() {
       } else if (storyId === "new-story-placeholder") {
         initialStory = {
           id: 'new-story-placeholder',
+          slug: 'new-story',
           title: 'Untitled Story',
           author: 'Alex Doe',
           description: 'A new story begins...',
@@ -178,7 +179,7 @@ export default function EditStoryPage() {
   const handlePublishAll = () => {
     setChapters(chapters.map(chapter => ({ ...chapter, isPublished: true })));
     // Redirect to the main story page after publishing
-    router.push(`/books/${storyId}`);
+    router.push(`/books/${story.slug}`);
   };
 
   const handleSaveDraft = () => {
