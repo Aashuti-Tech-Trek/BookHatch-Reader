@@ -7,6 +7,7 @@ import { GripVertical, FileText, Eye, EyeOff, Trash2 } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { type Chapter } from '@/app/stories/[slug]/edit/page';
+import { useState, useEffect } from 'react';
 
 interface ChapterListDndProps {
     chapters: Chapter[];
@@ -25,6 +26,16 @@ export default function ChapterListDnd({
     handleTogglePublish,
     handleDeleteChapter
 }: ChapterListDndProps) {
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
+
+    if (!isClient) {
+        return null;
+    }
+
     return (
         <DragDropContext onDragEnd={onDragEnd}>
             <Droppable droppableId="chapters">
