@@ -1,12 +1,13 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { books } from "@/lib/data";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, BookOpen, Edit, PlusCircle } from "lucide-react";
+import { ArrowLeft, BookOpen, Edit, PlusCircle, Loader2 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { BookCard } from "@/components/book-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -22,22 +23,42 @@ export interface UserProfile {
 }
 
 export default function MyProfilePage() {
-  const { user: authUser } = useAuth();
+  const { user: authUser, loading } = useAuth();
+  const router = useRouter();
   const [user, setUser] = useState<UserProfile>({
     name: "Alex Doe",
     bio: "An avid reader of science fiction and fantasy. Always looking for the next great adventure between the pages.",
     profilePicture: "https://placehold.co/128x128.png",
   });
 
+  useEffect(() => {
+    if (!loading && !authUser) {
+      router.push('/login');
+    }
+    if (authUser) {
+      setUser(prev => ({ ...prev, name: authUser.email || "User" }));
+    }
+  }, [authUser, loading, router]);
+
+
   const currentlyReading = books.slice(0, 2);
   const readHistory = books.slice(2, 5);
   const wishlist = books.slice(5, 7);
   // Filter stories to only show those by the current mock user "Alex Doe"
-  const myStories = books.filter(book => book.author === user.name);
+  // This will be updated to use the logged-in user's ID when we migrate to Firestore
+  const myStories = books.filter(book => book.author === "Alex Doe");
 
   const handleProfileUpdate = (newProfile: UserProfile) => {
     setUser(newProfile);
   };
+
+  if (loading || !authUser) {
+    return (
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground">
