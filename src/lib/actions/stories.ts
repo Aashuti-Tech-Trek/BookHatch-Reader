@@ -1,7 +1,8 @@
 // src/lib/actions/stories.ts
 "use server";
 
-import { generateCoverImage, type GenerateCoverImageInput } from "@/ai/flows/generate-cover-image";
+import { generateCoverImage } from "@/ai/flows/generate-cover-image";
+import { type GenerateCoverImageInput } from "@/ai/flows/types";
 
 export async function generateCoverImageAction(input: GenerateCoverImageInput) {
   try {

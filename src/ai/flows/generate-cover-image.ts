@@ -1,33 +1,19 @@
+
 // src/ai/flows/generate-cover-image.ts
 'use server';
 /**
  * @fileOverview A Genkit flow for generating book cover images.
  *
  * - generateCoverImage - A function that generates a cover image based on story details.
- * - GenerateCoverImageInput - The input type for the generateCoverImage function.
- * - GenerateCoverImageOutput - The return type for the generateCoverImage function.
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
-
-export const GenerateCoverImageInputSchema = z.object({
-  title: z.string().describe('The title of the book.'),
-  genre: z.string().describe('The genre of the book.'),
-  summary: z.string().describe('A brief summary of the book.'),
-});
-export type GenerateCoverImageInput = z.infer<
-  typeof GenerateCoverImageInputSchema
->;
-
-export const GenerateCoverImageOutputSchema = z.object({
-  imageUrl: z
-    .string()
-    .describe('The data URI of the generated cover image.'),
-});
-export type GenerateCoverImageOutput = z.infer<
-  typeof GenerateCoverImageOutputSchema
->;
+import {
+  GenerateCoverImageInputSchema,
+  GenerateCoverImageOutputSchema,
+  type GenerateCoverImageInput,
+  type GenerateCoverImageOutput,
+} from './types';
 
 export async function generateCoverImage(
   input: GenerateCoverImageInput
