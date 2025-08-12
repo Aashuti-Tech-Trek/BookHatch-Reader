@@ -22,6 +22,7 @@ import Image from "next/image";
 import { generateCoverImageAction } from "@/lib/actions/stories";
 import { Sparkles, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface StorySettingsSheetProps {
   children: React.ReactNode;
