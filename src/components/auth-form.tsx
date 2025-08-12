@@ -46,7 +46,7 @@ export function AuthForm() {
   } = useAuth();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
-  const [authMethod, setAuthMethod] = useState<"email" | "phone" | null>(null);
+  const [authMethod, setAuthMethod] = useState<"email-login" | "email-signup" | "phone" | "main">("main");
   const [confirmationResult, setConfirmationResult] = useState<any>(null);
 
 
@@ -177,6 +177,115 @@ export function AuthForm() {
       }
     });
   }
+  
+  const renderMainOptions = () => (
+    <div className="space-y-4">
+        <Button variant="outline" className="w-full" onClick={() => setAuthMethod("email-login")}>Sign In with Email</Button>
+        <Button variant="outline" className="w-full" onClick={() => setAuthMethod("email-signup")}>Create Account with Email</Button>
+         <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">
+                Or
+                </span>
+            </div>
+        </div>
+        <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={isPending}>
+            {isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+                <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
+                    <path fill="currentColor" d="M488 261.8C488 403.3 381.5 512 244 512 109.8 512 0 402.2 0 261.8 0 122.4 109.8 14.2 244 14.2c66.8 0 124 23.3 166.3 60.1l-66.7 64.9C315.1 114.9 283.4 97.6 244 97.6c-85.3 0-154.4 68.4-154.4 152.9s69.1 152.9 154.4 152.9c97.9 0 134-66.2 138.8-100.9H244v-75.3h236.4c2.5 12.9 3.6 26.4 3.6 40.5z"></path>
+                </svg>
+            )}
+            Continue with Google
+        </Button>
+        <Button variant="outline" className="w-full" onClick={() => setAuthMethod("phone")} disabled={isPending}>
+            Continue with Phone Number
+        </Button>
+        <div id="recaptcha-container"></div>
+    </div>
+  )
+
+  const renderEmailLogin = () => (
+     <div className="space-y-4">
+        <form className="space-y-4 pt-4" onSubmit={loginForm.handleSubmit(handleLogin)}>
+            <div className="space-y-2">
+                <Label htmlFor="login-email">Email</Label>
+                <Input id="login-email" type="email" placeholder="m@example.com" {...loginForm.register("email")} />
+                {loginForm.formState.errors.email && <p className="text-sm text-destructive">{loginForm.formState.errors.email.message}</p>}
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="login-password">Password</Label>
+                <Input id="login-password" type="password" {...loginForm.register("password")} />
+                {loginForm.formState.errors.password && <p className="text-sm text-destructive">{loginForm.formState.errors.password.message}</p>}
+            </div>
+            <Button type="submit" className="w-full" disabled={isPending}>
+                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Sign In
+            </Button>
+        </form>
+        <Button variant="link" onClick={() => setAuthMethod("main")}>Back to all options</Button>
+     </div>
+  )
+
+  const renderEmailSignup = () => (
+    <div className="space-y-4">
+        <form className="space-y-4 pt-4" onSubmit={signUpForm.handleSubmit(handleSignUp)}>
+            <div className="space-y-2">
+                <Label htmlFor="name">Name</Label>
+                <Input id="name" type="text" placeholder="Your Name" {...signUpForm.register("name")} />
+                {signUpForm.formState.errors.name && <p className="text-sm text-destructive">{signUpForm.formState.errors.name.message}</p>}
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="signup-email">Email</Label>
+                <Input id="signup-email" type="email" placeholder="m@example.com" {...signUpForm.register("email")} />
+                {signUpForm.formState.errors.email && <p className="text-sm text-destructive">{signUpForm.formState.errors.email.message}</p>}
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="signup-password">Password</Label>
+                <Input id="signup-password" type="password" {...signUpForm.register("password")} />
+                {signUpForm.formState.errors.password && <p className="text-sm text-destructive">{signUpForm.formState.errors.password.message}</p>}
+            </div>
+            <Button type="submit" className="w-full" disabled={isPending}>
+                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Sign Up
+            </Button>
+        </form>
+         <Button variant="link" onClick={() => setAuthMethod("main")}>Back to all options</Button>
+    </div>
+  )
+
+  const renderPhoneAuth = () => (
+     <div className="space-y-4">
+        {!confirmationResult ? (
+            <form className="space-y-4" onSubmit={phoneForm.handleSubmit(handlePhoneSignIn)}>
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input id="phone" type="tel" placeholder="+1 123 456 7890" {...phoneForm.register("phone")} />
+                {phoneForm.formState.errors.phone && <p className="text-sm text-destructive">{phoneForm.formState.errors.phone.message}</p>}
+                <Button type="submit" className="w-full" disabled={isPending}>
+                    {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Send Verification Code
+                </Button>
+            </form>
+        ) : (
+            <form className="space-y-4" onSubmit={codeForm.handleSubmit(handleVerifyCode)}>
+                <Label htmlFor="code">Verification Code</Label>
+                <Input id="code" type="text" placeholder="123456" {...codeForm.register("code")} />
+                {codeForm.formState.errors.code && <p className="text-sm text-destructive">{codeForm.formState.errors.code.message}</p>}
+                <Button type="submit" className="w-full" disabled={isPending}>
+                    {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Verify & Sign In
+                </Button>
+            </form>
+        )}
+            <Button variant="link" onClick={() => { setAuthMethod("main"); setConfirmationResult(null); }}>
+            Back to all options
+        </Button>
+    </div>
+  )
 
 
   return (
@@ -186,112 +295,10 @@ export function AuthForm() {
         <CardDescription>Sign in or create an account to continue.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {!authMethod ? (
-           <div className="space-y-4">
-                {/* Sign In with Email Form */}
-                <details>
-                    <summary className="cursor-pointer font-medium text-lg">Sign In with Email</summary>
-                     <form className="space-y-4 pt-4" onSubmit={loginForm.handleSubmit(handleLogin)}>
-                        <div className="space-y-2">
-                            <Label htmlFor="login-email">Email</Label>
-                            <Input id="login-email" type="email" placeholder="m@example.com" {...loginForm.register("email")} />
-                            {loginForm.formState.errors.email && <p className="text-sm text-destructive">{loginForm.formState.errors.email.message}</p>}
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="login-password">Password</Label>
-                            <Input id="login-password" type="password" {...loginForm.register("password")} />
-                             {loginForm.formState.errors.password && <p className="text-sm text-destructive">{loginForm.formState.errors.password.message}</p>}
-                        </div>
-                        <Button type="submit" className="w-full" disabled={isPending}>
-                            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Sign In
-                        </Button>
-                    </form>
-                </details>
-                
-                <Separator />
-                
-                {/* Sign Up with Email Form */}
-                 <details>
-                    <summary className="cursor-pointer font-medium text-lg">Create an Account with Email</summary>
-                     <form className="space-y-4 pt-4" onSubmit={signUpForm.handleSubmit(handleSignUp)}>
-                        <div className="space-y-2">
-                            <Label htmlFor="name">Name</Label>
-                            <Input id="name" type="text" placeholder="Your Name" {...signUpForm.register("name")} />
-                            {signUpForm.formState.errors.name && <p className="text-sm text-destructive">{signUpForm.formState.errors.name.message}</p>}
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="signup-email">Email</Label>
-                            <Input id="signup-email" type="email" placeholder="m@example.com" {...signUpForm.register("email")} />
-                            {signUpForm.formState.errors.email && <p className="text-sm text-destructive">{signUpForm.formState.errors.email.message}</p>}
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="signup-password">Password</Label>
-                            <Input id="signup-password" type="password" {...signUpForm.register("password")} />
-                            {signUpForm.formState.errors.password && <p className="text-sm text-destructive">{signUpForm.formState.errors.password.message}</p>}
-                        </div>
-                        <Button type="submit" className="w-full" disabled={isPending}>
-                            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Sign Up
-                        </Button>
-                    </form>
-                </details>
-
-                <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-background px-2 text-muted-foreground">
-                        Or
-                        </span>
-                    </div>
-                </div>
-                 {/* Social and Phone Auth Buttons */}
-                 <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={isPending}>
-                    {isPending ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                        <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
-                            <path fill="currentColor" d="M488 261.8C488 403.3 381.5 512 244 512 109.8 512 0 402.2 0 261.8 0 122.4 109.8 14.2 244 14.2c66.8 0 124 23.3 166.3 60.1l-66.7 64.9C315.1 114.9 283.4 97.6 244 97.6c-85.3 0-154.4 68.4-154.4 152.9s69.1 152.9 154.4 152.9c97.9 0 134-66.2 138.8-100.9H244v-75.3h236.4c2.5 12.9 3.6 26.4 3.6 40.5z"></path>
-                        </svg>
-                    )}
-                    Continue with Google
-                </Button>
-                 <Button variant="outline" className="w-full" onClick={() => setAuthMethod("phone")} disabled={isPending}>
-                    Continue with Phone Number
-                </Button>
-
-                <div id="recaptcha-container"></div>
-            </div>
-        ) : (
-             <div className="space-y-4">
-                {!confirmationResult ? (
-                    <form className="space-y-4" onSubmit={phoneForm.handleSubmit(handlePhoneSignIn)}>
-                        <Label htmlFor="phone">Phone Number</Label>
-                        <Input id="phone" type="tel" placeholder="+1 123 456 7890" {...phoneForm.register("phone")} />
-                        {phoneForm.formState.errors.phone && <p className="text-sm text-destructive">{phoneForm.formState.errors.phone.message}</p>}
-                        <Button type="submit" className="w-full" disabled={isPending}>
-                            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Send Verification Code
-                        </Button>
-                    </form>
-                ) : (
-                    <form className="space-y-4" onSubmit={codeForm.handleSubmit(handleVerifyCode)}>
-                        <Label htmlFor="code">Verification Code</Label>
-                        <Input id="code" type="text" placeholder="123456" {...codeForm.register("code")} />
-                        {codeForm.formState.errors.code && <p className="text-sm text-destructive">{codeForm.formState.errors.code.message}</p>}
-                        <Button type="submit" className="w-full" disabled={isPending}>
-                            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Verify & Sign In
-                        </Button>
-                    </form>
-                )}
-                 <Button variant="link" onClick={() => { setAuthMethod(null); setConfirmationResult(null); }}>
-                    Back to other sign-in options
-                </Button>
-            </div>
-        )}
+        {authMethod === 'main' && renderMainOptions()}
+        {authMethod === 'email-login' && renderEmailLogin()}
+        {authMethod === 'email-signup' && renderEmailSignup()}
+        {authMethod === 'phone' && renderPhoneAuth()}
       </CardContent>
     </Card>
   );
