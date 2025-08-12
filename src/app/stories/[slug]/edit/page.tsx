@@ -52,39 +52,53 @@ export default function EditStoryPage() {
     let initialStory: Book | undefined;
     let initialChapters: Chapter[] = [];
     
-    // For a new story, the slug will be 'new', but we use a more descriptive ID for storage.
-    const storyId = storySlug === 'new' ? 'new-story-placeholder' : storySlug;
-    
-    const savedStory = localStorage.getItem(`story-${storyId}`);
-    const savedChapters = localStorage.getItem(`chapters-${storyId}`);
+    // The slug is the source of truth from the URL
+    const isNewStory = storySlug === 'new';
 
-    if (savedStory) {
-      initialStory = JSON.parse(savedStory);
-      if(savedChapters) {
-        initialChapters = JSON.parse(savedChapters);
+    if (isNewStory) {
+      const newStoryData = localStorage.getItem('new-story-creation');
+      if(newStoryData) {
+        initialStory = JSON.parse(newStoryData);
+        // Ensure the slug is 'new' to match the URL state
+        initialStory!.slug = 'new';
+        // Assign a placeholder ID for local storage consistency
+        initialStory!.id = 'new-story-placeholder';
+      } else {
+         // Fallback if the user lands on /new/edit directly
+         initialStory = {
+          id: 'new-story-placeholder',
+          slug: 'new',
+          title: 'Untitled Story',
+          author: 'Alex Doe',
+          description: '',
+          longDescription: '',
+          coverImage: 'https://placehold.co/300x450.png',
+          genre: 'Fantasy'
+        };
       }
+      initialChapters = [];
     } else {
+      // Find the story from the `books` array by slug
       const foundStory = books.find((b) => b.slug === storySlug);
-      if (foundStory) {
+      
+      const savedStoryData = localStorage.getItem(`story-${storySlug}`);
+      const savedChaptersData = localStorage.getItem(`chapters-${storySlug}`);
+      
+      if (savedStoryData) {
+        initialStory = JSON.parse(savedStoryData);
+      } else {
         initialStory = foundStory;
-        // Placeholder chapters for first-time load
-        initialChapters = [
+      }
+
+      if(savedChaptersData) {
+        initialChapters = JSON.parse(savedChaptersData);
+      } else if (foundStory) {
+        // Placeholder chapters for first-time load if nothing is in storage
+         initialChapters = [
           { id: "chapter-1", title: "The Discovery", content: "<p>This is the content for chapter 1.</p>", isPublished: true },
           { id: "chapter-2", title: "A Fateful Encounter", content: "<p>Content for chapter 2 comes here.</p>", isPublished: true },
           { id: "chapter-3", title: "Whispers in the Dark", content: "<p>And finally, chapter 3 content.</p>", isPublished: false },
         ];
-      } else if (storySlug === "new") {
-        initialStory = {
-          id: 'new-story-placeholder',
-          slug: 'new', // The slug is 'new' to match the URL
-          title: 'Untitled Story',
-          author: 'Alex Doe',
-          description: 'A new story begins...',
-          longDescription: 'Start writing your story here.',
-          coverImage: 'https://placehold.co/300x450.png',
-          genre: 'Fantasy'
-        };
-        initialChapters = [];
       }
     }
     
@@ -98,18 +112,18 @@ export default function EditStoryPage() {
   // Save story to localStorage whenever it changes
   useEffect(() => {
     if (story && isMounted) {
-      // Use the story's actual ID for saving, not the slug.
-      localStorage.setItem(`story-${story.id}`, JSON.stringify(story));
+      const key = story.slug === 'new' ? 'new-story-creation' : `story-${story.slug}`;
+      localStorage.setItem(key, JSON.stringify(story));
     }
   }, [story, isMounted]);
 
   // Save chapters to localStorage whenever they change
   useEffect(() => {
-    if (story && isMounted) {
+    if (story && story.slug !== 'new' && isMounted) {
        if (chapters.length > 0) {
-           localStorage.setItem(`chapters-${story.id}`, JSON.stringify(chapters));
+           localStorage.setItem(`chapters-${story.slug}`, JSON.stringify(chapters));
        } else {
-           localStorage.removeItem(`chapters-${story.id}`);
+           localStorage.removeItem(`chapters-${story.slug}`);
        }
     }
   }, [chapters, story, isMounted]);
@@ -162,24 +176,29 @@ export default function EditStoryPage() {
       if (!prevStory) return undefined;
       const newSlug = updatedStory.title ? updatedStory.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '') : prevStory.slug;
       
-      let finalStory = { ...prevStory, ...updatedStory, slug: newSlug };
+      const isNewStoryFlow = prevStory.id === 'new-story-placeholder';
+      const slugHasChanged = newSlug !== prevStory.slug;
 
-      if (prevStory.id === 'new-story-placeholder') {
-         // This is the first save for a new story.
-         // Give it a real ID based on the slug.
-         finalStory = {...finalStory, id: newSlug};
-         // Clean up placeholder data
-         localStorage.removeItem(`story-${prevStory.id}`); 
-         // Save the new story with its new ID/slug
-         localStorage.setItem(`story-${finalStory.id}`, JSON.stringify(finalStory));
+      const finalStory = { ...prevStory, ...updatedStory, slug: newSlug };
+
+      if (isNewStoryFlow && slugHasChanged) {
+         // This is the first *real* save for a new story.
+         // Give it a real ID and remove the placeholder data.
+         finalStory.id = newSlug; // Use the slug as the ID
+         localStorage.setItem(`story-${newSlug}`, JSON.stringify(finalStory));
+         localStorage.removeItem('new-story-creation'); 
+         
          // Update the URL to match the new slug without reloading the page
          router.replace(`/stories/${newSlug}/edit`);
-         return finalStory;
-      } else if (newSlug !== prevStory.slug) {
-        // The slug has changed for an existing story
-        // To migrate, we remove the old key and let the useEffect save the new one.
+      } else if (slugHasChanged) {
+        // The slug has changed for an existing story. We need to migrate the data.
+        localStorage.setItem(`story-${newSlug}`, JSON.stringify(finalStory));
+        localStorage.setItem(`chapters-${newSlug}`, JSON.stringify(chapters));
+        
+        // Clean up the old slug data
         localStorage.removeItem(`story-${prevStory.slug}`);
         localStorage.removeItem(`chapters-${prevStory.slug}`);
+        
         router.replace(`/stories/${newSlug}/edit`);
       }
       
@@ -226,7 +245,7 @@ export default function EditStoryPage() {
             </span>
           </Link>
           <div className="flex items-center gap-4">
-             <Button onClick={handlePublishAll}>Publish All</Button>
+             <Button onClick={handlePublishAll} disabled={story.slug === 'new'}>Publish All</Button>
             <Button variant="secondary" onClick={handleSaveDraft} disabled={saveState === 'saving'}>
                 {saveState === 'saving' ? 'Saved!' : 'Save Draft'}
             </Button>
@@ -331,3 +350,5 @@ export default function EditStoryPage() {
     </div>
   );
 }
+
+    

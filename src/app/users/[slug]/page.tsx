@@ -21,6 +21,7 @@ export default function UserProfilePage({ params }: { params: { slug: string } }
   const authorBooks = books.filter((b) => b.author === authorName);
 
   if (authorBooks.length === 0) {
+    // This case should ideally not be hit if an author was found.
     notFound();
   }
 
@@ -94,3 +95,5 @@ export default function UserProfilePage({ params }: { params: { slug: string } }
     </div>
   );
 }
+
+    

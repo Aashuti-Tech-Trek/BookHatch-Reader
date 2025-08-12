@@ -28,12 +28,8 @@ export function NewStoryForm() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // This ID is temporary for localStorage. A real database would generate a unique ID.
-    const storyId = 'new-story-placeholder';
-
-    const newStory: Book = {
-      id: storyId,
-      slug: 'new', // The URL for a new story is /stories/new
+    // This object is temporarily stored to pass data to the edit page.
+    const newStory: Omit<Book, 'id' | 'slug'> & { genre: string } = {
       title: title || "Untitled Story",
       author: 'Alex Doe', // Placeholder author
       description: summary,
@@ -42,8 +38,9 @@ export function NewStoryForm() {
       genre: selectedGenres[0] || 'Fantasy'
     };
 
-    localStorage.setItem(`story-${storyId}`, JSON.stringify(newStory));
-    localStorage.setItem(`chapters-${storyId}`, JSON.stringify([]));
+    // Use localStorage to pass the initial data to the new story page.
+    // A real app would send this to a server and get back a new story ID/slug.
+    localStorage.setItem('new-story-creation', JSON.stringify(newStory));
 
     router.push(`/stories/new/edit`);
   };
@@ -100,3 +97,5 @@ export function NewStoryForm() {
     </Card>
   );
 }
+
+    
