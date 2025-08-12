@@ -3,6 +3,8 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
+import { getRemoteConfig } from "firebase/remote-config";
+import { getAnalytics } from "firebase/analytics";
 
 const firebaseConfig = {
   "projectId": "bookhatch-reader",
@@ -20,4 +22,18 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const storage = getStorage(app);
 
-export { app, db, auth, storage };
+// Client-side only services
+const remoteConfig = typeof window !== 'undefined' ? getRemoteConfig(app) : undefined;
+const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
+
+
+if (remoteConfig) {
+    // You can set default values for your remote config parameters here
+    remoteConfig.settings.minimumFetchIntervalMillis = 3600000; // 1 hour
+    remoteConfig.defaultConfig = {
+        "welcome_message": "Welcome to BookHatch Reader!",
+    };
+}
+
+
+export { app, db, auth, storage, remoteConfig, analytics };
