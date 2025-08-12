@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState, createContext } from 'react';
-import { onAuthStateChanged, type User, GoogleAuthProvider, signInWithPopup, updateProfile } from 'firebase/auth';
+import { onAuthStateChanged, type User, GoogleAuthProvider, signInWithPopup, updateProfile, RecaptchaVerifier, signInWithPhoneNumber, type ConfirmationResult } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { AuthContext } from '@/hooks/use-auth';
 import {
@@ -81,6 +81,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return userCredential;
   };
 
+  const handlePhoneSignIn = async (phoneNumber: string, appVerifierId: string) => {
+    const appVerifier = new RecaptchaVerifier(auth, appVerifierId, {
+        'size': 'invisible',
+        'callback': (response: any) => {
+          // reCAPTCHA solved, allow signInWithPhoneNumber.
+        }
+    });
+    const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
+    return confirmationResult;
+  };
+
+  const handleVerifyCode = async (confirmationResult: ConfirmationResult, code: string) => {
+    const userCredential = await confirmationResult.confirm(code);
+    const user = userCredential.user;
+
+     // Check if user already exists in Firestore
+    const userDocRef = doc(db, "users", user.uid);
+    const userDoc = await getDoc(userDocRef);
+
+    if (!userDoc.exists()) {
+      // If user doesn't exist, create a new document
+       await setDoc(userDocRef, {
+        uid: user.uid,
+        name: user.displayName || `User ${user.uid.substring(0, 5)}`,
+        email: user.email,
+        phone: user.phoneNumber,
+        bio: "A new author on BookHatch Reader.",
+        profilePicture: user.photoURL || `https://placehold.co/128x128.png`,
+        followers: 0,
+        following: 0,
+        totalLikes: 0,
+        averageRating: 0,
+        createdAt: new Date(),
+      });
+    }
+    return userCredential;
+  };
 
   const value = {
     user,
@@ -89,6 +126,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signOut: () => signOut(auth),
     signInWithGoogle: handleGoogleSignIn,
+    signInWithPhone: handlePhoneSignIn,
+    verifyCode: handleVerifyCode,
   };
 
   return (
@@ -97,3 +136,5 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     </AuthContext.Provider>
   );
 }
+
+    
