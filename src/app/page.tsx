@@ -100,7 +100,7 @@ export default function Home() {
             <CarouselContent>
               {featuredBooks.map((book) => (
                 <CarouselItem key={book.id}>
-                  <Link href={`/books/${book.id}`}>
+                  <Link href={`/books/${book.slug}`}>
                     <div className="relative aspect-[2/1] md:aspect-[3/1] w-full rounded-lg overflow-hidden">
                       <Image
                         src={book.coverImage}

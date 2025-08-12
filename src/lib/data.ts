@@ -1,5 +1,7 @@
+
 export type Book = {
   id: string;
+  slug: string;
   title: string;
   author: string;
   description: string;
@@ -26,6 +28,7 @@ export const genres = [
 export const books: Book[] = [
   {
     id: "1",
+    slug: "dune",
     title: "Dune",
     author: "Frank Herbert",
     description: "A landmark of science fiction, set in the distant future amidst a feudal interstellar society.",
@@ -35,6 +38,7 @@ export const books: Book[] = [
   },
   {
     id: "2",
+    slug: "the-hobbit",
     title: "The Hobbit",
     author: "J.R.R. Tolkien",
     description: "A fantasy novel about the quest of home-loving Bilbo Baggins to win a share of the treasure.",
@@ -44,6 +48,7 @@ export const books: Book[] = [
   },
   {
     id: "3",
+    slug: "pride-and-prejudice",
     title: "Pride and Prejudice",
     author: "Jane Austen",
     description: "A classic romance novel that charts the emotional development of the protagonist, Elizabeth Bennet.",
@@ -53,6 +58,7 @@ export const books: Book[] = [
   },
   {
     id: "4",
+    slug: "to-kill-a-mockingbird",
     title: "To Kill a Mockingbird",
     author: "Harper Lee",
     description: "A novel about the seriousness of racism and the loss of innocence in the American South.",
@@ -62,6 +68,7 @@ export const books: Book[] = [
   },
   {
     id: "5",
+    slug: "1984",
     title: "1984",
     author: "George Orwell",
     description: "A dystopian novel set in a world of perpetual war, omnipresent government surveillance, and propaganda.",
@@ -71,6 +78,7 @@ export const books: Book[] = [
   },
   {
     id: "6",
+    slug: "the-great-gatsby",
     title: "The Great Gatsby",
     author: "F. Scott Fitzgerald",
     description: "A novel about the American dream, set in the Jazz Age on Long Island.",
@@ -80,6 +88,7 @@ export const books: Book[] = [
   },
   {
     id: "7",
+    slug: "moby-dick",
     title: "Moby Dick",
     author: "Herman Melville",
     description: "The saga of Captain Ahab and his relentless pursuit of Moby Dick, the great white whale.",
@@ -89,6 +98,7 @@ export const books: Book[] = [
   },
   {
     id: "8",
+    slug: "the-shining",
     title: "The Shining",
     author: "Stephen King",
     description: "A horror novel about an aspiring writer and recovering alcoholic who accepts a position as the off-season caretaker.",
@@ -98,6 +108,7 @@ export const books: Book[] = [
   },
   {
     id: "9",
+    slug: "the-silent-patient",
     title: "The Silent Patient",
     author: "Alex Michaelides",
     description: "A shocking psychological thriller of a woman’s act of violence against her husband.",
@@ -107,6 +118,7 @@ export const books: Book[] = [
   },
   {
     id: "10",
+    slug: "and-then-there-were-none",
     title: "And Then There Were None",
     author: "Agatha Christie",
     description: "Ten strangers are lured to an isolated island mansion off the Devon coast by a mysterious host.",
@@ -116,6 +128,7 @@ export const books: Book[] = [
   },
   {
     id: "11",
+    slug: "the-hunger-games",
     title: "The Hunger Games",
     author: "Suzanne Collins",
     description: "In a dystopian future, a teenage girl volunteers to take her younger sister's place in a televised fight to the death.",
@@ -125,6 +138,7 @@ export const books: Book[] = [
   },
   {
     id: "12",
+    slug: "sapiens-a-brief-history-of-humankind",
     title: "Sapiens: A Brief History of Humankind",
     author: "Yuval Noah Harari",
     description: "A critically acclaimed book that explores the history of humankind from the Stone Age up to the present day.",
@@ -134,6 +148,7 @@ export const books: Book[] = [
   },
   {
     id: "13",
+    slug: "the-power-of-now",
     title: "The Power of Now",
     author: "Eckhart Tolle",
     description: "A guide to spiritual enlightenment that encourages living in the present moment.",
@@ -143,6 +158,7 @@ export const books: Book[] = [
   },
   {
     id: "14",
+    slug: "project-hail-mary",
     title: "Project Hail Mary",
     author: "Andy Weir",
     description: "A lone astronaut must save the earth from a disaster in this incredible new science-based thriller.",
@@ -152,6 +168,7 @@ export const books: Book[] = [
   },
   {
     id: "15",
+    slug: "the-midnight-library",
     title: "The Midnight Library",
     author: "Matt Haig",
     description: "A novel about all the choices that go into a life well lived.",

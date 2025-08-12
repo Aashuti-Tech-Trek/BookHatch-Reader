@@ -111,7 +111,7 @@ export default function MyProfilePage() {
                      <TabsContent value="stories">
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                            {myStories.map(book => (
-                                <Link href={`/stories/${book.id}/edit`} key={book.id} className="group">
+                                <Link href={`/stories/${book.slug}/edit`} key={book.id} className="group">
                                     <Card className="h-full flex flex-col">
                                         <CardHeader>
                                              <div className="aspect-[2/3] w-full overflow-hidden rounded-md">
