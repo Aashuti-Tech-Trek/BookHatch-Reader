@@ -7,7 +7,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { books } from "@/lib/data";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, BookOpen, Edit, PlusCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, BookOpen, Edit, PlusCircle, Loader2, Heart, Star, UserPlus } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { BookCard } from "@/components/book-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -30,6 +30,13 @@ export default function MyProfilePage() {
     bio: "An avid reader of science fiction and fantasy. Always looking for the next great adventure between the pages.",
     profilePicture: "https://placehold.co/128x128.png",
   });
+
+  // Placeholder data for stats
+  const stats = {
+    totalLikes: 12345,
+    averageRating: 4.8,
+    followers: 5678,
+  };
 
   useEffect(() => {
     if (!loading && !authUser) {
@@ -91,8 +98,22 @@ export default function MyProfilePage() {
                   />
                 <h1 className="text-3xl font-bold font-headline">{user.name}</h1>
                 <p className="text-muted-foreground mt-2">{user.bio}</p>
+                 <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mt-4 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                        <Heart className="h-4 w-4 text-red-500" />
+                        <span>{stats.totalLikes.toLocaleString()} Likes</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <Star className="h-4 w-4 text-yellow-500" />
+                        <span>{stats.averageRating} Rating</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <UserPlus className="h-4 w-4" />
+                        <span>{stats.followers.toLocaleString()} Followers</span>
+                    </div>
+                </div>
                  <EditProfileSheet user={user} onProfileUpdate={handleProfileUpdate}>
-                    <Button variant="outline" className="mt-4 w-full">
+                    <Button variant="outline" className="mt-6 w-full">
                         <Edit className="mr-2 h-4 w-4" />
                         Edit Profile
                     </Button>
