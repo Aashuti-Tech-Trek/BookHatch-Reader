@@ -38,7 +38,7 @@ export default function ChapterListDnd({
 
     return (
         <DragDropContext onDragEnd={onDragEnd}>
-            <Droppable droppableId="chapters">
+            <Droppable droppableId="chapters" isDropDisabled={!isClient}>
                 {(provided) => (
                     <div {...provided.droppableProps} ref={provided.innerRef} className="p-2 space-y-1">
                         {chapters.map((chapter, index) => (
