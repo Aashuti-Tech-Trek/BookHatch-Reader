@@ -7,7 +7,7 @@ import { type Book, books, genres } from "@/lib/data";
 import { BookCard } from "@/components/book-card";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { BookOpen, Sparkles, Search, User } from "lucide-react";
+import { BookOpen, Sparkles, Search, User, LogIn, LogOut } from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -17,11 +17,13 @@ import {
 import Image from "next/image";
 import Autoplay from "embla-carousel-autoplay";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function Home() {
   const [api, setApi] = useState<CarouselApi>()
   const [current, setCurrent] = useState(0)
   const [count, setCount] = useState(0)
+  const { user, signOut: firebaseSignOut } = useAuth();
 
   const featuredBooks = books.slice(0, 5);
   const genresWithBooks = genres
@@ -72,12 +74,27 @@ export default function Home() {
               </Link>
             </Button>
             <ThemeToggle />
-             <Button variant="ghost" size="icon" asChild>
-                <Link href="/profile">
-                    <User className="h-5 w-5" />
-                    <span className="sr-only">My Profile</span>
-                </Link>
-            </Button>
+             {user ? (
+                <>
+                  <Button variant="ghost" size="icon" asChild>
+                    <Link href="/profile">
+                      <User className="h-5 w-5" />
+                      <span className="sr-only">My Profile</span>
+                    </Link>
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={firebaseSignOut}>
+                    <LogOut className="h-5 w-5" />
+                    <span className="sr-only">Sign Out</span>
+                  </Button>
+                </>
+              ) : (
+                <Button variant="ghost" asChild>
+                   <Link href="/login">
+                    <LogIn className="mr-2 h-4 w-4"/>
+                    Login
+                  </Link>
+                </Button>
+              )}
           </nav>
         </div>
       </header>
