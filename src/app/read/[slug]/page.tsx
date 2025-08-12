@@ -64,15 +64,16 @@ export default function ReadStoryPage() {
     return <div className="min-h-screen bg-background text-foreground flex items-center justify-center"><p>Loading Story...</p></div>;
   }
 
-  if (!story) {
-    return notFound();
+  if (!story && isMounted) {
+    // We check isMounted to avoid a flash of notFound during the initial client-side render
+    notFound();
   }
 
   const activeChapter = chapters.find((c) => c.id === activeChapterId);
 
   const ChapterList = () => (
      <nav className="flex flex-col gap-1 p-4">
-        <h3 className="font-bold font-headline text-lg mb-2">{story.title}</h3>
+        <h3 className="font-bold font-headline text-lg mb-2">{story?.title || "Loading..."}</h3>
         {chapters.map((chapter, index) => (
           <Button
             key={chapter.id}
@@ -91,8 +92,8 @@ export default function ReadStoryPage() {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-4">
-             <Button asChild variant="ghost" size="icon">
-                <Link href={`/books/${story.slug}`}>
+             <Button asChild variant="ghost" size="icon" disabled={!story}>
+                <Link href={story ? `/books/${story.slug}` : '#'}>
                     <ArrowLeft />
                     <span className="sr-only">Back to Story Details</span>
                 </Link>
@@ -124,7 +125,7 @@ export default function ReadStoryPage() {
                 <ChapterList />
             </aside>
             <main className="w-full lg:w-3/4 xl:w-4/5 lg:pl-8 py-8">
-                {activeChapter ? (
+                {activeChapter && story ? (
                     <article className="prose dark:prose-invert max-w-none">
                         <div className="relative w-full aspect-video mb-8 rounded-lg overflow-hidden">
                              <Image
@@ -145,7 +146,7 @@ export default function ReadStoryPage() {
                     </article>
                 ) : (
                     <div className="text-center p-12">
-                        <p className="text-muted-foreground">This story has no published chapters yet.</p>
+                        <p className="text-muted-foreground">{story ? "This story has no published chapters yet." : "Loading chapter..."}</p>
                     </div>
                 )}
             </main>
