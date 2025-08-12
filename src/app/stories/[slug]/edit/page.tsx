@@ -51,7 +51,8 @@ export default function EditStoryPage() {
     setIsMounted(true);
     let initialStory: Book | undefined;
     let initialChapters: Chapter[] = [];
-
+    
+    // For a new story, the slug will be 'new', but we use a more descriptive ID for storage.
     const storyId = storySlug === 'new' ? 'new-story-placeholder' : storySlug;
     
     const savedStory = localStorage.getItem(`story-${storyId}`);
@@ -75,7 +76,7 @@ export default function EditStoryPage() {
       } else if (storySlug === "new") {
         initialStory = {
           id: 'new-story-placeholder',
-          slug: 'new-story',
+          slug: 'new', // The slug is 'new' to match the URL
           title: 'Untitled Story',
           author: 'Alex Doe',
           description: 'A new story begins...',
@@ -97,6 +98,7 @@ export default function EditStoryPage() {
   // Save story to localStorage whenever it changes
   useEffect(() => {
     if (story && isMounted) {
+      // Use the story's actual ID for saving, not the slug.
       localStorage.setItem(`story-${story.id}`, JSON.stringify(story));
     }
   }, [story, isMounted]);
@@ -166,13 +168,18 @@ export default function EditStoryPage() {
          // This is the first save for a new story.
          // Give it a real ID based on the slug.
          finalStory = {...finalStory, id: newSlug};
-         localStorage.removeItem(`story-${prevStory.id}`); // remove placeholder
+         // Clean up placeholder data
+         localStorage.removeItem(`story-${prevStory.id}`); 
+         // Save the new story with its new ID/slug
          localStorage.setItem(`story-${finalStory.id}`, JSON.stringify(finalStory));
+         // Update the URL to match the new slug without reloading the page
          router.replace(`/stories/${newSlug}/edit`);
          return finalStory;
       } else if (newSlug !== prevStory.slug) {
         // The slug has changed for an existing story
-        localStorage.removeItem(`story-${prevStory.id}`);
+        // To migrate, we remove the old key and let the useEffect save the new one.
+        localStorage.removeItem(`story-${prevStory.slug}`);
+        localStorage.removeItem(`chapters-${prevStory.slug}`);
         router.replace(`/stories/${newSlug}/edit`);
       }
       

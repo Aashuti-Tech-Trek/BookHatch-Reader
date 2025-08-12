@@ -28,12 +28,12 @@ export function NewStoryForm() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const slug = title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
-    const newStoryId = slug || `new-story-${Date.now()}`;
+    // This ID is temporary for localStorage. A real database would generate a unique ID.
+    const storyId = 'new-story-placeholder';
 
     const newStory: Book = {
-      id: newStoryId,
-      slug: newStoryId,
+      id: storyId,
+      slug: 'new', // The URL for a new story is /stories/new
       title: title || "Untitled Story",
       author: 'Alex Doe', // Placeholder author
       description: summary,
@@ -42,10 +42,10 @@ export function NewStoryForm() {
       genre: selectedGenres[0] || 'Fantasy'
     };
 
-    localStorage.setItem(`story-${newStory.id}`, JSON.stringify(newStory));
-    localStorage.setItem(`chapters-${newStory.id}`, JSON.stringify([]));
+    localStorage.setItem(`story-${storyId}`, JSON.stringify(newStory));
+    localStorage.setItem(`chapters-${storyId}`, JSON.stringify([]));
 
-    router.push(`/stories/${newStory.slug}/edit`);
+    router.push(`/stories/new/edit`);
   };
 
   return (

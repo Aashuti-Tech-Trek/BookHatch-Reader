@@ -58,7 +58,7 @@ export default function BookDetailPage({ params }: { params: { slug: string } })
               {book.title}
             </h1>
             <div className="mt-4 flex flex-wrap items-center gap-4 text-lg text-muted-foreground">
-                <Link href={`/users/${encodeURIComponent(book.author)}`} className="flex items-center gap-2 hover:text-primary transition-colors">
+                <Link href={`/users/${book.author.toLowerCase().replace(/\s+/g, '-')}`} className="flex items-center gap-2 hover:text-primary transition-colors">
                     <User className="h-5 w-5" />
                     <span>{book.author}</span>
                 </Link>
