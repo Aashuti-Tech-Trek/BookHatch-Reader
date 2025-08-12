@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useParams, notFound } from "next/navigation";
+import { useParams, notFound, useRouter } from "next/navigation";
 import { books, type Book } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, BookOpen, MessageSquare, PanelLeft } from "lucide-react";
@@ -21,6 +21,7 @@ interface Chapter {
 
 export default function ReadStoryPage() {
   const params = useParams();
+  const router = useRouter();
   const storySlug = Array.isArray(params.slug) ? params.slug[0] : params.slug;
 
   const [story, setStory] = useState<Book | undefined>();
@@ -92,11 +93,9 @@ export default function ReadStoryPage() {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-4">
-             <Button asChild variant="ghost" size="icon" disabled={!story}>
-                <Link href={story ? `/books/${story.slug}` : '#'}>
-                    <ArrowLeft />
-                    <span className="sr-only">Back to Story Details</span>
-                </Link>
+             <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                <ArrowLeft />
+                <span className="sr-only">Back</span>
             </Button>
             <Link href="/" className="flex items-center space-x-2">
                 <BookOpen className="h-6 w-6 text-primary" />
