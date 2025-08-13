@@ -2,46 +2,68 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpen, ArrowLeft, Search } from "lucide-react";
+import { BookOpen, ArrowLeft, Search, Loader2 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { BookCard } from "@/components/book-card";
-import { Loader2 } from "lucide-react";
 import Image from "next/image";
-import { FilterSidebar } from "@/components/filter-sidebar";
+import { FilterSidebar, type FilterValues } from "@/components/filter-sidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-
+import { useDebouncedCallback } from "use-debounce";
+import { searchBooks } from "@/lib/actions/search";
+import { Book } from "@/lib/data";
 
 export default function RecommendationsPage() {
-  const [loading, setLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [recommendations, setRecommendations] = useState<string[]>([]);
   const [isInitialState, setIsInitialState] = useState(true);
+  const [searchResults, setSearchResults] = useState<Book[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filters, setFilters] = useState<Omit<FilterValues, 'searchQuery'>>({});
 
-  const handleSearch = (filters: any) => {
-    // In a real app, this would trigger a search/filter API call
-    console.log("Searching with filters:", filters);
-    // For now, we'll just clear the view
-    setIsInitialState(false);
-    setRecommendations([]);
-    setLoading(true);
-    // Simulate a network request
-    setTimeout(() => setLoading(false), 1500);
-  };
+  const debouncedSearch = useDebouncedCallback((query: string, currentFilters: Omit<FilterValues, 'searchQuery'>) => {
+    startTransition(async () => {
+      setIsInitialState(false);
+      setRecommendations([]); // Clear AI recs when performing a search
+      const combinedFilters = { ...currentFilters, searchQuery: query };
+      const results = await searchBooks(combinedFilters);
+      setSearchResults(results);
+    });
+  }, 500);
+
+  useEffect(() => {
+    // Trigger search when filters from sidebar change or when searchQuery changes
+    if (!isInitialState) {
+        debouncedSearch(searchQuery, filters);
+    }
+  }, [searchQuery, filters, isInitialState, debouncedSearch]);
+
 
   const handleGetRecommendations = (recs: string[]) => {
     setRecommendations(recs);
+    setSearchResults([]); // Clear search results
     setIsInitialState(false);
   };
   
   const handleLoadingState = (isLoading: boolean) => {
-    setLoading(isLoading);
      if (isLoading) {
       setIsInitialState(false);
       setRecommendations([]);
+      setSearchResults([]);
     }
   }
+
+  const handleFilterChange = (newFilters: Omit<FilterValues, 'searchQuery'>) => {
+    setFilters(newFilters);
+  };
+
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  }
+  
+  const hasActiveFilters = searchQuery || Object.values(filters).some(val => Array.isArray(val) ? val.length > 0 : val && val !== 'all');
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -64,22 +86,23 @@ export default function RecommendationsPage() {
           </Link>
         </Button>
         
-        <form className="relative max-w-2xl mx-auto mb-8">
+        <div className="relative max-w-2xl mx-auto mb-8">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
               type="search"
-              name="q"
               placeholder="Search for books, authors, or genres..."
               className="w-full pl-12 pr-4 py-3 text-lg rounded-full"
+              value={searchQuery}
+              onChange={handleSearchInputChange}
             />
-        </form>
+        </div>
 
         <div className="flex flex-col md:flex-row gap-8">
             <aside className="w-full md:w-1/3 lg:w-1/4">
-                <FilterSidebar 
-                    onSearch={handleSearch} 
+                <FilterSidebar
                     onGetRecommendations={handleGetRecommendations}
                     setLoading={handleLoadingState}
+                    onFilterChange={handleFilterChange}
                 />
             </aside>
             <div className="w-full md:w-2/3 lg:w-3/4">
@@ -92,13 +115,13 @@ export default function RecommendationsPage() {
                         </p>
                     </div>
                 )}
-                {loading && (
+                {isPending && (
                     <div className="text-center p-8">
                         <Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" />
                         <p className="mt-4 text-muted-foreground text-lg">Finding stories for you...</p>
                     </div>
                 )}
-                {!loading && !isInitialState && recommendations.length > 0 && (
+                {!isPending && !isInitialState && recommendations.length > 0 && (
                      <div className="mt-6 md:mt-0">
                         <h2 className="text-3xl font-bold mb-6 font-headline">
                             Your Personal Reading List
@@ -133,7 +156,19 @@ export default function RecommendationsPage() {
                         </div>
                     </div>
                 )}
-                 {!loading && !isInitialState && recommendations.length === 0 && (
+                 {!isPending && !isInitialState && recommendations.length === 0 && searchResults.length > 0 && (
+                     <div className="mt-6 md:mt-0">
+                        <h2 className="text-3xl font-bold mb-6 font-headline">
+                            Search Results
+                        </h2>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                           {searchResults.map((book) => (
+                                <BookCard key={book.id} book={book} />
+                            ))}
+                        </div>
+                    </div>
+                 )}
+                 {!isPending && !isInitialState && recommendations.length === 0 && searchResults.length === 0 && (
                     <div className="h-full flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/30 p-12 text-center bg-card">
                          <h2 className="text-2xl font-bold font-headline">No Results Found</h2>
                          <p className="text-muted-foreground mt-2 max-w-md">
