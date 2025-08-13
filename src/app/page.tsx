@@ -7,7 +7,7 @@ import { type Book, books, genres } from "@/lib/data";
 import { BookCard } from "@/components/book-card";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { BookOpen, Sparkles, Search, User, LogIn, LogOut } from "lucide-react";
+import { BookOpen, Sparkles, Search, User, LogIn, LogOut, ChevronRight } from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -26,6 +26,7 @@ export default function Home() {
   const [count, setCount] = useState(0)
   const { user, signOut: firebaseSignOut } = useAuth();
   const [headline, setHeadline] = useState("Featured Books");
+  const [visibleSciFiCount, setVisibleSciFiCount] = useState(3);
 
   const featuredBooks = books.slice(0, 5);
   const genresWithBooks = genres
@@ -34,6 +35,8 @@ export default function Home() {
       books: books.filter((book) => book.genre === genre),
     }))
     .filter((genre) => genre.books.length > 0);
+
+  const sciFiBooks = books.filter(book => book.genre === "Science Fiction");
 
   useEffect(() => {
     if (!api) {
@@ -51,6 +54,14 @@ export default function Home() {
   const scrollTo = useCallback((index: number) => {
     api?.scrollTo(index);
   }, [api]);
+
+  const handleShowMoreSciFi = () => {
+    if (visibleSciFiCount === 3) {
+      setVisibleSciFiCount(10);
+    } else {
+      setVisibleSciFiCount(sciFiBooks.length);
+    }
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
@@ -159,18 +170,40 @@ export default function Home() {
         </section>
 
         <div className="space-y-12">
-          {genresWithBooks.map(({ genre, books: genreBooks }) => (
-            <section key={genre}>
-              <h2 className="text-2xl font-bold font-headline mb-4">
-                {genre}
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                {genreBooks.map((book) => (
-                  <BookCard key={book.id} book={book} />
-                ))}
-              </div>
-            </section>
-          ))}
+          {genresWithBooks.map(({ genre, books: genreBooks }) => {
+            if (genre === 'Science Fiction') {
+              return (
+                <section key={genre}>
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-2xl font-bold font-headline">{genre}</h2>
+                    {sciFiBooks.length > 3 && visibleSciFiCount < sciFiBooks.length && (
+                       <Button variant="link" onClick={handleShowMoreSciFi} className="text-primary">
+                          {visibleSciFiCount === 3 ? 'Show More' : 'View All'}
+                          <ChevronRight className="h-4 w-4 ml-1" />
+                        </Button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                    {sciFiBooks.slice(0, visibleSciFiCount).map((book) => (
+                      <BookCard key={book.id} book={book} />
+                    ))}
+                  </div>
+                </section>
+              );
+            }
+            return (
+              <section key={genre}>
+                 <h2 className="text-2xl font-bold font-headline mb-4">
+                  {genre}
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                  {genreBooks.map((book) => (
+                    <BookCard key={book.id} book={book} />
+                  ))}
+                </div>
+              </section>
+            )
+          })}
         </div>
       </main>
       <footer className="container py-6 text-center text-muted-foreground text-sm">
