@@ -130,6 +130,13 @@ export default function EditStoryPage() {
     }
   }, [chapters, story, isMounted]);
 
+  // Effect to handle URL change when slug is updated
+  useEffect(() => {
+    if (story && story.slug && story.slug !== 'new' && story.slug !== storySlug) {
+      router.replace(`/stories/${story.slug}/edit`);
+    }
+  }, [story, storySlug, router]);
+
 
   if (!isMounted) {
     return (
@@ -184,14 +191,9 @@ export default function EditStoryPage() {
       const finalStory = { ...prevStory, ...updatedStory, slug: newSlug };
 
       if (isNewStoryFlow && slugHasChanged) {
-         // This is the first *real* save for a new story.
-         // Give it a real ID and remove the placeholder data.
          finalStory.id = newSlug; // Use the slug as the ID
          localStorage.setItem(`story-${newSlug}`, JSON.stringify(finalStory));
          localStorage.removeItem('new-story-creation'); 
-         
-         // Update the URL to match the new slug without reloading the page
-         router.replace(`/stories/${newSlug}/edit`);
       } else if (slugHasChanged) {
         // The slug has changed for an existing story. We need to migrate the data.
         localStorage.setItem(`story-${newSlug}`, JSON.stringify(finalStory));
@@ -200,8 +202,6 @@ export default function EditStoryPage() {
         // Clean up the old slug data
         localStorage.removeItem(`story-${prevStory.slug}`);
         localStorage.removeItem(`chapters-${prevStory.slug}`);
-        
-        router.replace(`/stories/${newSlug}/edit`);
       }
       
       return finalStory;
@@ -352,5 +352,7 @@ export default function EditStoryPage() {
     </div>
   );
 }
+
+    
 
     
