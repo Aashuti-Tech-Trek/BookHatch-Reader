@@ -18,9 +18,6 @@ import Image from "next/image";
 import Autoplay from "embla-carousel-autoplay";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
-import { remoteConfig, analytics } from "@/lib/firebase";
-import { fetchAndActivate, getString } from "firebase/remote-config";
-import { logEvent } from "firebase/analytics";
 
 
 export default function Home() {
@@ -29,22 +26,6 @@ export default function Home() {
   const [count, setCount] = useState(0)
   const { user, signOut: firebaseSignOut } = useAuth();
   const [headline, setHeadline] = useState("Featured Books");
-
-  useEffect(() => {
-    if (remoteConfig && analytics) {
-      fetchAndActivate(remoteConfig)
-        .then(() => {
-          const remoteHeadline = getString(remoteConfig, "welcome_message");
-          if(remoteHeadline) {
-            setHeadline(remoteHeadline);
-            logEvent(analytics, 'headline_experiment', { headline_variant: remoteHeadline });
-          }
-        })
-        .catch((err) => {
-          console.error("Error fetching remote config:", err);
-        });
-    }
-  }, []);
 
   const featuredBooks = books.slice(0, 5);
   const genresWithBooks = genres
@@ -70,17 +51,6 @@ export default function Home() {
   const scrollTo = useCallback((index: number) => {
     api?.scrollTo(index);
   }, [api]);
-
-  const handleFeaturedClick = (book: Book) => {
-    if (analytics) {
-      logEvent(analytics, "featured_book_click", {
-        book_id: book.id,
-        book_title: book.title,
-        headline_variant: headline,
-      });
-    }
-  };
-
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
@@ -149,7 +119,7 @@ export default function Home() {
             <CarouselContent>
               {featuredBooks.map((book) => (
                 <CarouselItem key={book.id}>
-                  <Link href={`/books/${book.slug}`} onClick={() => handleFeaturedClick(book)}>
+                  <Link href={`/books/${book.slug}`}>
                     <div className="relative aspect-[2/1] md:aspect-[3/1] w-full rounded-lg overflow-hidden">
                       <Image
                         src={book.coverImage}
