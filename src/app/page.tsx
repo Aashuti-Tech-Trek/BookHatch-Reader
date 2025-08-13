@@ -12,6 +12,8 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
   type CarouselApi,
 } from "@/components/ui/carousel";
 import Image from "next/image";
@@ -195,7 +197,7 @@ export default function Home() {
             >
                 <CarouselContent className="-ml-4">
                     {authors.map((author) => (
-                        <CarouselItem key={author.slug} className="basis-1/3 sm:basis-1/4 md:basis-1/5 lg:basis-1/6 xl:basis-1/8 pl-4">
+                        <CarouselItem key={author.slug} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6 pl-4">
                             <Link href={`/users/${author.slug}`} className="group">
                                 <div className="flex flex-col items-center text-center gap-2">
                                      <Avatar className="h-24 w-24 ring-2 ring-transparent group-hover:ring-primary transition-all duration-300">
@@ -208,6 +210,8 @@ export default function Home() {
                         </CarouselItem>
                     ))}
                 </CarouselContent>
+                <CarouselPrevious />
+                <CarouselNext />
             </Carousel>
         </section>
 
