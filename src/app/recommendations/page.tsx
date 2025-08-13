@@ -2,25 +2,45 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpen, ArrowLeft, Search } from "lucide-react";
-import { RecommendationsForm } from "@/components/recommendations-form";
+import { BookOpen, ArrowLeft } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useRouter, useSearchParams } from "next/navigation";
-import { FormEvent } from "react";
+import { useState } from "react";
+import { BookCard } from "@/components/book-card";
+import { Loader2 } from "lucide-react";
+import Image from "next/image";
+import { FilterSidebar } from "@/components/filter-sidebar";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
 
 export default function RecommendationsPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const defaultQuery = searchParams.get('q') || '';
+  const [loading, setLoading] = useState(false);
+  const [recommendations, setRecommendations] = useState<string[]>([]);
+  const [isInitialState, setIsInitialState] = useState(true);
 
-  const handleSearch = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const searchQuery = formData.get('search') as string;
-    router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
+  const handleSearch = (filters: any) => {
+    // In a real app, this would trigger a search/filter API call
+    console.log("Searching with filters:", filters);
+    // For now, we'll just clear the view
+    setIsInitialState(false);
+    setRecommendations([]);
+    setLoading(true);
+    // Simulate a network request
+    setTimeout(() => setLoading(false), 1500);
   };
+
+  const handleGetRecommendations = (recs: string[]) => {
+    setRecommendations(recs);
+    setIsInitialState(false);
+  };
+  
+  const handleLoadingState = (isLoading: boolean) => {
+    setLoading(isLoading);
+     if (isLoading) {
+      setIsInitialState(false);
+      setRecommendations([]);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -36,29 +56,81 @@ export default function RecommendationsPage() {
         </div>
       </header>
       <main className="container py-8">
-        <Button asChild variant="ghost" className="mb-4">
+         <Button asChild variant="ghost" className="mb-4">
           <Link href="/">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Library
           </Link>
         </Button>
-        <form onSubmit={handleSearch} className="relative max-w-xl mx-auto mb-8">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input
-              type="search"
-              name="search"
-              defaultValue={defaultQuery}
-              placeholder="Search for books, authors, or genres..."
-              className="w-full pl-10 pr-4 py-2 text-lg rounded-full"
-            />
-        </form>
-        <div className="text-center mb-8 max-w-2xl mx-auto">
-          <h1 className="text-4xl font-bold font-headline">Find Your Next Read</h1>
-          <p className="text-muted-foreground mt-2 text-lg">
-            Select your favorite genres and let our AI find books you'll love.
-          </p>
+        <div className="flex flex-col md:flex-row gap-8">
+            <aside className="w-full md:w-1/3 lg:w-1/4">
+                <FilterSidebar 
+                    onSearch={handleSearch} 
+                    onGetRecommendations={handleGetRecommendations}
+                    setLoading={handleLoadingState}
+                />
+            </aside>
+            <div className="w-full md:w-2/3 lg:w-3/4">
+                {isInitialState && (
+                    <div className="h-full flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/30 p-12 text-center bg-card">
+                        <BookOpen className="h-16 w-16 text-muted-foreground/50 mb-4" />
+                        <h2 className="text-2xl font-bold font-headline">Discover Your Next Story</h2>
+                        <p className="text-muted-foreground mt-2 max-w-md">
+                            Use the filters on the left to search for specific books or get personalized AI recommendations based on your favorite genres.
+                        </p>
+                    </div>
+                )}
+                {loading && (
+                    <div className="text-center p-8">
+                        <Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" />
+                        <p className="mt-4 text-muted-foreground text-lg">Finding stories for you...</p>
+                    </div>
+                )}
+                {!loading && !isInitialState && recommendations.length > 0 && (
+                     <div className="mt-6 md:mt-0">
+                        <h2 className="text-3xl font-bold mb-6 font-headline">
+                            Your Personal Reading List
+                        </h2>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {recommendations.map((rec, index) => {
+                                const match = rec.match(/(\d+\.\s*)?(.*?)(\s+by\s+(.*))?$/);
+                                const title = match ? match[2] : rec;
+                                const author = match ? match[4] : 'Unknown Author';
+
+                                return (
+                                    <Card key={index} className="overflow-hidden">
+                                        <CardHeader className="p-0">
+                                            <div className="aspect-[2/3] w-full bg-muted">
+                                            <Image
+                                                src={`https://placehold.co/300x450.png`}
+                                                alt={`Cover of ${title}`}
+                                                width={300}
+                                                height={450}
+                                                className="w-full h-full object-cover"
+                                                data-ai-hint="book"
+                                            />
+                                            </div>
+                                        </CardHeader>
+                                        <CardContent className="p-4">
+                                            <CardTitle className="font-headline text-lg leading-tight truncate">{title}</CardTitle>
+                                            <CardDescription className="mt-1 text-sm">{author}</CardDescription>
+                                        </CardContent>
+                                    </Card>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+                 {!loading && !isInitialState && recommendations.length === 0 && (
+                    <div className="h-full flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/30 p-12 text-center bg-card">
+                         <h2 className="text-2xl font-bold font-headline">No Results Found</h2>
+                         <p className="text-muted-foreground mt-2 max-w-md">
+                            Try adjusting your search or filters, or use the AI recommendations to find something new.
+                         </p>
+                    </div>
+                 )}
+            </div>
         </div>
-        <RecommendationsForm />
       </main>
     </div>
   );
