@@ -1,3 +1,4 @@
+
 // src/lib/firebase.ts
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
@@ -7,10 +8,10 @@ import { getRemoteConfig } from "firebase/remote-config";
 import { getAnalytics } from "firebase/analytics";
 
 const firebaseConfig = {
+  "apiKey": "AIzaSyDNBmYP8uspds_0NuH5g3MHfD9RFkqRPo8",
   "projectId": "bookhatch-reader",
   "appId": "1:326452768095:web:cb72dc01638efd9b5c5aea",
   "storageBucket": "bookhatch-reader.firebasestorage.app",
-  "apiKey": "AIzaSyBZk99sXJdRjMV_t97MZfPsiPua-w4OqbE",
   "authDomain": "bookhatch-reader.firebaseapp.com",
   "measurementId": "",
   "messagingSenderId": "326452768095"
