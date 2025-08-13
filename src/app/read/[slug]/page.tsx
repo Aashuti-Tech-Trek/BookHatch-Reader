@@ -5,12 +5,13 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useParams, notFound, useRouter } from "next/navigation";
-import { books, type Book } from "@/lib/data";
+import { type Book } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, BookOpen, MessageSquare, PanelLeft } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { cn } from "@/lib/utils";
+import { db } from "@/lib/firebase";
+import { getDocs, collection, query, where, orderBy } from "firebase/firestore";
 
 interface Chapter {
   id: string;
@@ -24,41 +25,41 @@ export default function ReadStoryPage() {
   const router = useRouter();
   const storySlug = Array.isArray(params.slug) ? params.slug[0] : params.slug;
 
-  const [story, setStory] = useState<Book | undefined>();
+  const [story, setStory] = useState<Book | null>(null);
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [activeChapterId, setActiveChapterId] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
-    let initialStory: Book | undefined;
-    let initialChapters: Chapter[] = [];
+    if (!storySlug) return;
 
-    const foundStory = books.find((b) => b.slug === storySlug);
-    if (!foundStory) return;
+    const fetchStoryAndChapters = async () => {
+      const storiesRef = collection(db, "stories");
+      const q = query(storiesRef, where("slug", "==", storySlug));
+      const querySnapshot = await getDocs(q);
 
-    const savedStory = localStorage.getItem(`story-${foundStory.id}`);
-    const savedChapters = localStorage.getItem(`chapters-${foundStory.id}`);
-
-    if (savedStory && savedChapters) {
-      initialStory = JSON.parse(savedStory);
-      initialChapters = JSON.parse(savedChapters).filter((c: Chapter) => c.isPublished);
-    } else {
-        initialStory = foundStory;
-        // Placeholder chapters if nothing is in local storage
-        initialChapters = [
-          { id: "chapter-1", title: "The Discovery", content: "<p>This is the content for chapter 1. Readers can comment on this.</p><p>This is another paragraph in the first chapter.</p>", isPublished: true },
-          { id: "chapter-2", title: "A Fateful Encounter", content: "<p>Content for chapter 2 comes here.</p>", isPublished: true },
-        ];
-    }
-
-    if (initialStory) {
-      setStory(initialStory);
-      setChapters(initialChapters);
-      if (initialChapters.length > 0) {
-        setActiveChapterId(initialChapters[0].id);
+      if (querySnapshot.empty) {
+        setStory(null); // Will trigger notFound() later
+        return;
       }
-    }
+
+      const storyDoc = querySnapshot.docs[0];
+      const storyData = { id: storyDoc.id, ...storyDoc.data() } as Book;
+      setStory(storyData);
+
+      const chaptersRef = collection(db, `stories/${storyDoc.id}/chapters`);
+      const chaptersQuery = query(chaptersRef, where("isPublished", "==", true), orderBy("order", "asc"));
+      const chaptersSnapshot = await getDocs(chaptersQuery);
+      const fetchedChapters = chaptersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Chapter));
+      
+      setChapters(fetchedChapters);
+      if (fetchedChapters.length > 0) {
+        setActiveChapterId(fetchedChapters[0].id);
+      }
+    };
+
+    fetchStoryAndChapters();
   }, [storySlug]);
 
   if (!isMounted) {
@@ -66,7 +67,6 @@ export default function ReadStoryPage() {
   }
 
   if (!story && isMounted) {
-    // We check isMounted to avoid a flash of notFound during the initial client-side render
     notFound();
   }
 

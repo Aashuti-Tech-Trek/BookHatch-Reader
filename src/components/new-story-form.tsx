@@ -8,40 +8,46 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { genres, type Book } from "@/lib/data";
+import { genres } from "@/lib/data";
 import { Badge } from "./ui/badge";
-import { useState, useId } from "react";
+import { useState } from "react";
 import { BookUp } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
 
 export function NewStoryForm() {
     const router = useRouter();
+    const { user } = useAuth();
+    const { toast } = useToast();
     const [title, setTitle] = useState('');
     const [summary, setSummary] = useState('');
-    const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+    const [selectedGenre, setSelectedGenre] = useState<string>('');
 
     const handleGenreToggle = (genre: string) => {
-        setSelectedGenres(prev => 
-            prev.includes(genre) ? prev.filter(g => g !== genre) : [genre] // Only allow one genre for simplicity
-        )
+        setSelectedGenre(genre);
     }
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!user) {
+        toast({ variant: "destructive", title: "Authentication Error", description: "You must be logged in to create a story."});
+        router.push('/login');
+        return;
+    }
+
+    if (!title || !summary || !selectedGenre) {
+        toast({ variant: "destructive", title: "Missing Information", description: "Please fill out the title, summary, and select a genre."});
+        return;
+    }
     
-    // This object is temporarily stored to pass data to the edit page.
-    const newStory: Omit<Book, 'id' | 'slug'> & { genre: string } = {
-      title: title || "Untitled Story",
-      author: 'Alex Doe', // Placeholder author
-      description: summary,
-      longDescription: 'Start writing your story here.',
-      coverImage: 'https://placehold.co/300x450.png',
-      genre: selectedGenres[0] || 'Fantasy'
+    const newStoryData = {
+      title,
+      summary,
+      genre: selectedGenre
     };
 
-    // Use localStorage to pass the initial data to the new story page.
-    // A real app would send this to a server and get back a new story ID/slug.
-    localStorage.setItem('new-story-creation', JSON.stringify(newStory));
-
+    localStorage.setItem('new-story-creation', JSON.stringify(newStoryData));
     router.push(`/stories/new/edit`);
   };
 
@@ -51,19 +57,19 @@ export function NewStoryForm() {
         <CardContent className="p-6 space-y-6">
           <div className="space-y-2">
             <Label htmlFor="title" className="text-lg font-semibold">Story Title</Label>
-            <Input id="title" placeholder="e.g., The Last Starlight" required value={title} onChange={(e) => setTitle(e.target.value)} />
+            <Input id="title" placeholder="e.g., The Last Starlight" value={title} onChange={(e) => setTitle(e.target.value)} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="summary" className="text-lg font-semibold">Summary</Label>
-            <Textarea id="summary" placeholder="A brief, enticing summary of your story." required value={summary} onChange={(e) => setSummary(e.target.value)} />
+            <Textarea id="summary" placeholder="A brief, enticing summary of your story." value={summary} onChange={(e) => setSummary(e.target.value)} />
           </div>
            <div className="space-y-2">
-            <Label className="text-lg font-semibold">Genre(s)</Label>
+            <Label className="text-lg font-semibold">Genre</Label>
              <div className="flex flex-wrap gap-2">
                 {genres.map(genre => (
                     <Badge 
                         key={genre}
-                        variant={selectedGenres.includes(genre) ? "default" : "outline"}
+                        variant={selectedGenre === genre ? "default" : "outline"}
                         onClick={() => handleGenreToggle(genre)}
                         className="cursor-pointer"
                     >
@@ -97,5 +103,3 @@ export function NewStoryForm() {
     </Card>
   );
 }
-
-    

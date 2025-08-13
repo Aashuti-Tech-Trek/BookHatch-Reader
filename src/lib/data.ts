@@ -4,10 +4,12 @@ export type Book = {
   slug: string;
   title: string;
   author: string;
+  authorId?: string; // Add authorId to link to users collection
   description: string;
   longDescription: string;
   coverImage: string;
   genre: string;
+  isPublished?: boolean;
 };
 
 export const genres = [

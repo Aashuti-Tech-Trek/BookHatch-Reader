@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { books } from "@/lib/data";
+import { books, type Book } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, BookOpen, Edit, PlusCircle, Loader2, Heart, Star, UserPlus } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -15,6 +15,8 @@ import { Separator } from "@/components/ui/separator";
 import { EditProfileSheet } from "@/components/edit-profile-sheet";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { useAuth } from "@/hooks/use-auth";
+import { db } from "@/lib/firebase";
+import { collection, query, where, getDocs } from "firebase/firestore";
 
 export interface UserProfile {
   name: string;
@@ -30,6 +32,7 @@ export default function MyProfilePage() {
     bio: "An avid reader of science fiction and fantasy. Always looking for the next great adventure between the pages.",
     profilePicture: "https://placehold.co/128x128.png",
   });
+  const [myStories, setMyStories] = useState<Book[]>([]);
 
   // Placeholder data for stats
   const stats = {
@@ -43,7 +46,17 @@ export default function MyProfilePage() {
       router.push('/login');
     }
     if (authUser) {
-      setUser(prev => ({ ...prev, name: authUser.email || "User" }));
+      setUser(prev => ({ ...prev, name: authUser.displayName || authUser.email || "User" }));
+      
+      const fetchStories = async () => {
+        if (!authUser.uid) return;
+        const storiesQuery = query(collection(db, 'stories'), where('authorId', '==', authUser.uid));
+        const querySnapshot = await getDocs(storiesQuery);
+        const stories = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Book));
+        setMyStories(stories);
+      };
+
+      fetchStories();
     }
   }, [authUser, loading, router]);
 
@@ -51,9 +64,6 @@ export default function MyProfilePage() {
   const currentlyReading = books.slice(0, 2);
   const readHistory = books.slice(2, 5);
   const wishlist = books.slice(5, 7);
-  // Filter stories to only show those by the current mock user "Alex Doe"
-  // This will be updated to use the logged-in user's ID when we migrate to Firestore
-  const myStories = books.filter(book => book.author === "Alex Doe");
 
   const handleProfileUpdate = (newProfile: UserProfile) => {
     setUser(newProfile);

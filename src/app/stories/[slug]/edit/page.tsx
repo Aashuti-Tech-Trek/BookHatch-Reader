@@ -1,12 +1,11 @@
 
-
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
-import { books, type Book } from "@/lib/data";
+import { type Book } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import {
   ArrowLeft,
@@ -15,6 +14,7 @@ import {
   Settings,
   Eye,
   EyeOff,
+  Loader2
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { StoryEditor } from "@/components/story-editor";
@@ -26,6 +26,10 @@ import { Input } from "@/components/ui/input";
 import { type DropResult } from 'react-beautiful-dnd';
 import dynamic from 'next/dynamic';
 import { v4 as uuidv4 } from 'uuid';
+import { useAuth } from "@/hooks/use-auth";
+import { db } from "@/lib/firebase";
+import { doc, getDoc, collection, getDocs, writeBatch, query, where, orderBy, setDoc, deleteDoc, updateDoc } from "firebase/firestore";
+import { useToast } from "@/hooks/use-toast";
 
 const ChapterListDnd = dynamic(() => import('@/components/chapter-list-dnd'), { ssr: false });
 
@@ -34,137 +38,162 @@ export interface Chapter {
     title: string;
     content: string;
     isPublished: boolean;
+    order: number;
 }
 
 export default function EditStoryPage() {
   const params = useParams();
   const router = useRouter();
+  const { user: authUser, loading: authLoading } = useAuth();
+  const { toast } = useToast();
   const storySlug = Array.isArray(params.slug) ? params.slug[0] : params.slug;
 
-  const [story, setStory] = useState<Book | undefined>();
+  const [story, setStory] = useState<Book | null>(null);
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [activeChapterId, setActiveChapterId] = useState<string | null>(null);
-  const [isMounted, setIsMounted] = useState(false);
-  const [saveState, setSaveState] = useState<"idle" | "saving">("idle");
+  const [loading, setLoading] = useState(true);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
 
+  const fetchStoryData = useCallback(async (slug: string) => {
+    if (!authUser) return;
+    setLoading(true);
 
-  // Load initial data from localStorage or fallback to mock data
-  useEffect(() => {
-    setIsMounted(true);
-    let initialStory: Book | undefined;
-    let initialChapters: Chapter[] = [];
+    const storiesRef = collection(db, 'stories');
+    const q = query(storiesRef, where('slug', '==', slug), where('authorId', '==', authUser.uid));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      toast({ variant: "destructive", title: "Error", description: "Story not found or you don't have permission to edit it." });
+      router.push('/profile');
+      return;
+    }
+
+    const storyDoc = querySnapshot.docs[0];
+    setStory({ id: storyDoc.id, ...storyDoc.data() } as Book);
+
+    const chaptersRef = collection(db, `stories/${storyDoc.id}/chapters`);
+    const chaptersQuery = query(chaptersRef, orderBy('order'));
+    const chaptersSnapshot = await getDocs(chaptersQuery);
+    const fetchedChapters = chaptersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Chapter));
     
-    // The slug is the source of truth from the URL
-    const isNewStory = storySlug === 'new';
+    setChapters(fetchedChapters);
+    if (fetchedChapters.length > 0) {
+      setActiveChapterId(fetchedChapters[0].id);
+    }
+    setLoading(false);
+  }, [authUser, router, toast]);
 
-    if (isNewStory) {
-      const newStoryData = localStorage.getItem('new-story-creation');
-      if(newStoryData) {
-        initialStory = JSON.parse(newStoryData);
-        // Ensure the slug is 'new' to match the URL state
-        initialStory!.slug = 'new';
-        // Assign a placeholder ID for local storage consistency
-        initialStory!.id = 'new-story-placeholder';
-      } else {
-         // Fallback if the user lands on /new/edit directly
-         initialStory = {
-          id: 'new-story-placeholder',
-          slug: 'new',
-          title: 'Untitled Story',
-          author: 'Alex Doe',
-          description: '',
-          longDescription: '',
-          coverImage: 'https://placehold.co/300x450.png',
-          genre: 'Fantasy'
-        };
-      }
-      initialChapters = [];
+  useEffect(() => {
+    if (authLoading) return;
+    if (!authUser) {
+      router.push('/login');
+      return;
+    }
+    if (storySlug !== 'new') {
+      fetchStoryData(storySlug);
     } else {
-      // Find the story from the `books` array by slug
-      const foundStory = books.find((b) => b.slug === storySlug);
-      
-      const savedStoryData = localStorage.getItem(`story-${storySlug}`);
-      const savedChaptersData = localStorage.getItem(`chapters-${storySlug}`);
-      
-      if (savedStoryData) {
-        initialStory = JSON.parse(savedStoryData);
-      } else {
-        initialStory = foundStory;
-      }
-
-      if(savedChaptersData) {
-        initialChapters = JSON.parse(savedChaptersData);
-      } else if (foundStory) {
-        // Placeholder chapters for first-time load if nothing is in storage
-         initialChapters = [
-          { id: "chapter-1", title: "The Discovery", content: "<p>This is the content for chapter 1.</p>", isPublished: true },
-          { id: "chapter-2", title: "A Fateful Encounter", content: "<p>Content for chapter 2 comes here.</p>", isPublished: true },
-          { id: "chapter-3", title: "Whispers in the Dark", content: "<p>And finally, chapter 3 content.</p>", isPublished: false },
-        ];
-      }
+        const newStoryData = localStorage.getItem('new-story-creation');
+        if (newStoryData) {
+            const parsedData = JSON.parse(newStoryData);
+            const newStory: Book = {
+                id: 'new-story-placeholder', // This will be replaced on first save
+                slug: parsedData.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, ''),
+                title: parsedData.title,
+                author: authUser.displayName || 'Anonymous',
+                authorId: authUser.uid,
+                description: parsedData.summary,
+                longDescription: 'Start writing your story here.',
+                coverImage: 'https://placehold.co/300x450.png',
+                genre: parsedData.genre,
+                isPublished: false,
+            };
+            setStory(newStory);
+            localStorage.removeItem('new-story-creation');
+        } else {
+             // Fallback if the user lands on /new/edit directly
+            const newStory: Book = {
+              id: 'new-story-placeholder',
+              slug: 'untitled-story',
+              title: 'Untitled Story',
+              author: authUser.displayName || 'Anonymous',
+              authorId: authUser.uid,
+              description: '',
+              longDescription: '',
+              coverImage: 'https://placehold.co/300x450.png',
+              genre: 'Fantasy',
+              isPublished: false,
+            };
+            setStory(newStory);
+        }
+        setChapters([]);
+        setLoading(false);
     }
-    
-    setStory(initialStory);
-    setChapters(initialChapters);
-    if(initialChapters.length > 0) {
-      setActiveChapterId(initialChapters[0]?.id ?? null);
-    }
-  }, [storySlug]);
-  
-  // Save story to localStorage whenever it changes
-  useEffect(() => {
-    if (story && isMounted) {
-      const key = story.slug === 'new' ? 'new-story-creation' : `story-${story.slug}`;
-      localStorage.setItem(key, JSON.stringify(story));
-    }
-  }, [story, isMounted]);
+  }, [storySlug, authLoading, authUser, router, fetchStoryData]);
 
-  // Save chapters to localStorage whenever they change
-  useEffect(() => {
-    if (story && story.slug !== 'new' && isMounted) {
-       if (chapters.length > 0) {
-           localStorage.setItem(`chapters-${story.slug}`, JSON.stringify(chapters));
-       } else {
-           localStorage.removeItem(`chapters-${story.slug}`);
-       }
+  const handleSaveDraft = useCallback(async () => {
+    if (!story || !authUser) return;
+    setSaveState("saving");
+
+    let currentStory = { ...story };
+
+    try {
+        if (currentStory.id === 'new-story-placeholder') {
+            const newDocRef = doc(collection(db, 'stories'));
+            currentStory.id = newDocRef.id; 
+            currentStory.authorId = authUser.uid;
+            await setDoc(newDocRef, currentStory);
+            setStory(currentStory); // Update state with real ID
+            router.replace(`/stories/${currentStory.slug}/edit`, { scroll: false });
+        } else {
+            const storyRef = doc(db, 'stories', story.id);
+            await updateDoc(storyRef, currentStory);
+        }
+
+        const batch = writeBatch(db);
+        chapters.forEach(chapter => {
+            const chapterRef = doc(db, `stories/${currentStory.id}/chapters`, chapter.id);
+            batch.set(chapterRef, chapter);
+        });
+        await batch.commit();
+
+        setSaveState("saved");
+        toast({ title: "Draft Saved!", description: "Your story and chapters have been saved." });
+        setTimeout(() => setSaveState("idle"), 2000);
+    } catch (error) {
+        console.error("Error saving draft:", error);
+        toast({ variant: "destructive", title: "Save Failed", description: "Could not save your story. Please try again." });
+        setSaveState("idle");
     }
-  }, [chapters, story, isMounted]);
+}, [story, chapters, authUser, router, toast]);
 
-  // Effect to handle URL change when slug is updated
-  useEffect(() => {
-    if (story && story.slug && story.slug !== 'new' && story.slug !== storySlug) {
-      router.replace(`/stories/${story.slug}/edit`);
-    }
-  }, [story, storySlug, router]);
-
-
-  if (!isMounted) {
-    return (
-        <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
-            <p>Loading Editor...</p>
-        </div>
-    );
-  }
-  
-  if (!story) {
-    return (
-        <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
-            <p>Story not found...</p>
-        </div>
-    );
-  }
   
   const handleAddChapter = () => {
+    const newOrder = chapters.length > 0 ? Math.max(...chapters.map(c => c.order)) + 1 : 0;
     const newId = uuidv4();
-    const newChapter: Chapter = { id: newId, title: `New Chapter`, content: "<p></p>", isPublished: false };
+    const newChapter: Chapter = { id: newId, title: `New Chapter`, content: "<p></p>", isPublished: false, order: newOrder };
     setChapters([...chapters, newChapter]);
     setActiveChapterId(newId);
   };
 
-  const handleDeleteChapter = (id: string) => {
-    setChapters(chapters.filter(chapter => chapter.id !== id));
-    if (activeChapterId === id) {
-        setActiveChapterId(chapters.length > 1 ? chapters.filter(c => c.id !== id)[0].id : null);
+  const handleDeleteChapter = async (id: string) => {
+    if (!story || story.id === 'new-story-placeholder') {
+        // If it's a new story, just remove from local state
+        setChapters(chapters.filter(chapter => chapter.id !== id));
+        if (activeChapterId === id) {
+            setActiveChapterId(chapters.length > 1 ? chapters.filter(c => c.id !== id)[0].id : null);
+        }
+        return;
+    }
+    try {
+        await deleteDoc(doc(db, `stories/${story.id}/chapters`, id));
+        const updatedChapters = chapters.filter(chapter => chapter.id !== id);
+        setChapters(updatedChapters);
+        if (activeChapterId === id) {
+            setActiveChapterId(updatedChapters.length > 0 ? updatedChapters[0].id : null);
+        }
+        toast({ title: "Chapter Deleted" });
+    } catch (error) {
+        toast({ variant: "destructive", title: "Error", description: "Could not delete chapter." });
     }
   };
   
@@ -172,40 +201,28 @@ export default function EditStoryPage() {
     setChapters(chapters.map(chapter =>
         chapter.id === id ? { ...chapter, content: newContent } : chapter
     ));
+    setSaveState("idle");
   };
 
   const handleTogglePublish = (id: string) => {
      setChapters(chapters.map(chapter => 
         chapter.id === id ? { ...chapter, isPublished: !chapter.isPublished } : chapter
     ));
+    setSaveState("idle");
   }
   
-   const handleStoryUpdate = (updatedStory: Partial<Book>) => {
-    setStory(prevStory => {
-      if (!prevStory) return undefined;
-      const newSlug = updatedStory.title ? updatedStory.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '') : prevStory.slug;
-      
-      const isNewStoryFlow = prevStory.id === 'new-story-placeholder';
-      const slugHasChanged = newSlug !== prevStory.slug;
+   const handleStoryUpdate = (updatedStoryData: Partial<Book>) => {
+    if (!story) return;
+    const newSlug = updatedStoryData.title 
+        ? updatedStoryData.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '') 
+        : story.slug;
 
-      const finalStory = { ...prevStory, ...updatedStory, slug: newSlug };
+    setStory(prev => ({ ...prev!, ...updatedStoryData, slug: newSlug }));
 
-      if (isNewStoryFlow && slugHasChanged) {
-         finalStory.id = newSlug; // Use the slug as the ID
-         localStorage.setItem(`story-${newSlug}`, JSON.stringify(finalStory));
-         localStorage.removeItem('new-story-creation'); 
-      } else if (slugHasChanged) {
-        // The slug has changed for an existing story. We need to migrate the data.
-        localStorage.setItem(`story-${newSlug}`, JSON.stringify(finalStory));
-        localStorage.setItem(`chapters-${newSlug}`, JSON.stringify(chapters));
-        
-        // Clean up the old slug data
-        localStorage.removeItem(`story-${prevStory.slug}`);
-        localStorage.removeItem(`chapters-${prevStory.slug}`);
-      }
-      
-      return finalStory;
-    });
+    if (story.slug !== 'new' && newSlug !== story.slug) {
+        router.replace(`/stories/${newSlug}/edit`, { scroll: false });
+    }
+    setSaveState("idle");
   };
 
   const onDragEnd = (result: DropResult) => {
@@ -215,26 +232,62 @@ export default function EditStoryPage() {
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
 
-    setChapters(items);
+    const updatedChapters = items.map((chapter, index) => ({ ...chapter, order: index }));
+    setChapters(updatedChapters);
+    setSaveState("idle");
   };
   
-  const handlePublishAll = () => {
-    setChapters(chapters.map(chapter => ({ ...chapter, isPublished: true })));
-    // Redirect to the main story page after publishing
-    router.push(`/books/${story.slug}`);
+  const handlePublishAll = async () => {
+    if (!story || story.id === 'new-story-placeholder' || chapters.length === 0) {
+        toast({ variant: "destructive", title: "Cannot Publish", description: "Please save the story and add at least one chapter before publishing."});
+        return;
+    }
+    
+    setSaveState("saving");
+    try {
+        const batch = writeBatch(db);
+        chapters.forEach(chapter => {
+            const chapterRef = doc(db, `stories/${story.id}/chapters`, chapter.id);
+            batch.update(chapterRef, { isPublished: true });
+        });
+        
+        const storyRef = doc(db, "stories", story.id);
+        batch.update(storyRef, { isPublished: true });
+        
+        await batch.commit();
+        
+        setChapters(prev => prev.map(c => ({ ...c, isPublished: true })));
+        setStory(prev => ({ ...prev!, isPublished: true }));
+
+        setSaveState("saved");
+        toast({ title: "Story Published!", description: "Your story is now live for everyone to read." });
+        router.push(`/books/${story.slug}`);
+
+    } catch (error) {
+        console.error("Error publishing story:", error);
+        toast({ variant: "destructive", title: "Publish Failed", description: "Could not publish your story. Please try again." });
+        setSaveState("idle");
+    }
   };
 
-  const handleSaveDraft = () => {
-    setSaveState("saving");
-    // The useEffects already handle saving, so this is for UX feedback.
-    // In a real app, this would trigger an API call.
-    setTimeout(() => {
-      setSaveState("idle");
-    }, 1500);
-  };
+  if (loading || authLoading) {
+    return (
+        <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+    );
+  }
+  
+  if (!story) {
+    return (
+        <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+            <p>Story not found or you do not have access.</p>
+        </div>
+    );
+  }
 
   const activeChapter = chapters.find(c => c.id === activeChapterId);
-  const isStoryPublished = chapters.length > 0 && chapters.every(c => c.isPublished);
+  const isStoryPublished = story.isPublished || (chapters.length > 0 && chapters.every(c => c.isPublished));
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -247,9 +300,9 @@ export default function EditStoryPage() {
             </span>
           </Link>
           <div className="flex items-center gap-4">
-             <Button onClick={handlePublishAll} disabled={story.slug === 'new'}>Publish All</Button>
-            <Button variant="secondary" onClick={handleSaveDraft} disabled={saveState === 'saving'}>
-                {saveState === 'saving' ? 'Saved!' : 'Save Draft'}
+             <Button onClick={handlePublishAll} disabled={story.slug === 'new' || saveState === 'saving'}>Publish Story</Button>
+            <Button variant="secondary" onClick={handleSaveDraft} disabled={saveState === 'saving' || saveState === 'saved'}>
+                {saveState === 'saving' ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving...</> : saveState === 'saved' ? 'Saved!' : 'Save Draft'}
             </Button>
             <ThemeToggle />
           </div>
@@ -327,7 +380,8 @@ export default function EditStoryPage() {
                                 value={activeChapter.title}
                                 onChange={(e) => {
                                     const newTitle = e.target.value;
-                                    setChapters(chapters.map(c => c.id === activeChapter.id ? {...c, title: newTitle} : c))
+                                    setChapters(chapters.map(c => c.id === activeChapter.id ? {...c, title: newTitle} : c));
+                                    setSaveState('idle');
                                 }}
                                 className="text-3xl font-bold font-headline bg-transparent border-none focus:ring-0 p-0 w-full h-auto" 
                             />
@@ -352,7 +406,3 @@ export default function EditStoryPage() {
     </div>
   );
 }
-
-    
-
-    
