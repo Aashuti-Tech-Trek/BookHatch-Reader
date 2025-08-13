@@ -178,9 +178,10 @@ export default function EditStoryPage() {
   const handleDeleteChapter = async (id: string) => {
     if (!story || story.id === 'new-story-placeholder') {
         // If it's a new story, just remove from local state
-        setChapters(chapters.filter(chapter => chapter.id !== id));
+        const updatedChapters = chapters.filter(chapter => chapter.id !== id);
+        setChapters(updatedChapters);
         if (activeChapterId === id) {
-            setActiveChapterId(chapters.length > 1 ? chapters.filter(c => c.id !== id)[0].id : null);
+            setActiveChapterId(updatedChapters.length > 0 ? updatedChapters.filter(c => c.id !== id)[0].id : null);
         }
         return;
     }
@@ -219,7 +220,7 @@ export default function EditStoryPage() {
 
     setStory(prev => ({ ...prev!, ...updatedStoryData, slug: newSlug }));
 
-    if (story.slug !== 'new' && newSlug !== story.slug) {
+    if (story.id !== 'new-story-placeholder' && newSlug !== story.slug) {
         router.replace(`/stories/${newSlug}/edit`, { scroll: false });
     }
     setSaveState("idle");
@@ -300,7 +301,7 @@ export default function EditStoryPage() {
             </span>
           </Link>
           <div className="flex items-center gap-4">
-             <Button onClick={handlePublishAll} disabled={story.slug === 'new' || saveState === 'saving'}>Publish Story</Button>
+             <Button onClick={handlePublishAll} disabled={story.id === 'new-story-placeholder' || saveState === 'saving'}>Publish Story</Button>
             <Button variant="secondary" onClick={handleSaveDraft} disabled={saveState === 'saving' || saveState === 'saved'}>
                 {saveState === 'saving' ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving...</> : saveState === 'saved' ? 'Saved!' : 'Save Draft'}
             </Button>
