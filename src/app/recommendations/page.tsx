@@ -5,7 +5,7 @@ import Link from "next/link";
 import { BookOpen, ArrowLeft, Search, Loader2 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect, useTransition, useCallback } from "react";
 import { BookCard } from "@/components/book-card";
 import Image from "next/image";
 import { FilterSidebar, type FilterValues } from "@/components/filter-sidebar";
@@ -55,9 +55,9 @@ export default function RecommendationsPage() {
     }
   }
 
-  const handleFilterChange = (newFilters: Omit<FilterValues, 'searchQuery'>) => {
+  const handleFilterChange = useCallback((newFilters: Omit<FilterValues, 'searchQuery'>) => {
     setFilters(newFilters);
-  };
+  }, []);
 
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
