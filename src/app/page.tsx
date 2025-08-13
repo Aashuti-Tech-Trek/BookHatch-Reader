@@ -26,17 +26,20 @@ export default function Home() {
   const [count, setCount] = useState(0)
   const { user, signOut: firebaseSignOut } = useAuth();
   const [headline, setHeadline] = useState("Featured Books");
-  const [visibleSciFiCount, setVisibleSciFiCount] = useState(3);
+  const [visibleBookCounts, setVisibleBookCounts] = useState({
+    'Science Fiction': 3,
+    'Fantasy': 3,
+    'Thriller': 3,
+  });
 
   const featuredBooks = books.slice(0, 5);
+  
   const genresWithBooks = genres
     .map((genre) => ({
-      genre,
+      name: genre,
       books: books.filter((book) => book.genre === genre),
     }))
     .filter((genre) => genre.books.length > 0);
-
-  const sciFiBooks = books.filter(book => book.genre === "Science Fiction");
 
   useEffect(() => {
     if (!api) {
@@ -55,12 +58,11 @@ export default function Home() {
     api?.scrollTo(index);
   }, [api]);
 
-  const handleShowMoreSciFi = () => {
-    if (visibleSciFiCount === 3) {
-      setVisibleSciFiCount(10);
-    } else {
-      setVisibleSciFiCount(sciFiBooks.length);
-    }
+  const handleShowMore = (genre: keyof typeof visibleBookCounts) => {
+    setVisibleBookCounts(prev => ({
+        ...prev,
+        [genre]: prev[genre] === 3 ? 10 : books.filter(b => b.genre === genre).length
+    }));
   };
 
   return (
@@ -166,21 +168,22 @@ export default function Home() {
         </section>
 
         <div className="space-y-12">
-          {genresWithBooks.map(({ genre, books: genreBooks }) => {
-            if (genre === 'Science Fiction') {
+          {genresWithBooks.map(({ name: genre, books: genreBooks }) => {
+             const genreKey = genre as keyof typeof visibleBookCounts;
+             if (visibleBookCounts.hasOwnProperty(genreKey)) {
               return (
                 <section key={genre}>
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="text-2xl font-bold font-headline">{genre}</h2>
-                    {sciFiBooks.length > 3 && visibleSciFiCount < sciFiBooks.length && (
-                       <Button variant="link" onClick={handleShowMoreSciFi} className="text-primary">
-                          {visibleSciFiCount === 3 ? 'Show More' : 'View All'}
+                    {genreBooks.length > 3 && (visibleBookCounts[genreKey] || 0) < genreBooks.length && (
+                       <Button variant="link" onClick={() => handleShowMore(genreKey)} className="text-primary">
+                          {(visibleBookCounts[genreKey] || 0) === 3 ? 'Show More' : 'View All'}
                           <ChevronRight className="h-4 w-4 ml-1" />
                         </Button>
                     )}
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                    {sciFiBooks.slice(0, visibleSciFiCount).map((book) => (
+                    {genreBooks.slice(0, visibleBookCounts[genreKey]).map((book) => (
                       <BookCard key={book.id} book={book} />
                     ))}
                   </div>

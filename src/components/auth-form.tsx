@@ -78,7 +78,7 @@ export function AuthForm() {
           title: "Login Successful",
           description: "Welcome back!",
         });
-        router.push("/profile");
+        router.push("/");
         router.refresh();
       } catch (error: any) {
         toast({
@@ -98,7 +98,7 @@ export function AuthForm() {
           title: "Account Created",
           description: "Welcome! You are now logged in.",
         });
-        router.push("/profile");
+        router.push("/");
         router.refresh();
       } catch (error: any) {
         toast({
@@ -119,7 +119,7 @@ export function AuthForm() {
           title: "Login Successful",
           description: "Welcome! You are now logged in.",
         });
-        router.push("/profile");
+        router.push("/");
         router.refresh();
       } catch (error: any) {
          toast({
@@ -166,7 +166,7 @@ export function AuthForm() {
           title: "Login Successful",
           description: "Welcome! You are now logged in.",
         });
-        router.push("/profile");
+        router.push("/");
         router.refresh();
       } catch (error: any) {
          toast({
@@ -303,5 +303,3 @@ export function AuthForm() {
     </Card>
   );
 }
-
-    
