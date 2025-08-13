@@ -23,6 +23,7 @@ import { generateCoverImageAction } from "@/lib/actions/stories";
 import { Sparkles, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { Switch } from "./ui/switch";
 
 interface StorySettingsSheetProps {
   children: React.ReactNode;
@@ -39,6 +40,7 @@ export function StorySettingsSheet({ children, story, onStoryUpdate }: StorySett
   const [selectedGenres, setSelectedGenres] = useState<string[]>([story.genre]);
   const [coverImage, setCoverImage] = useState(story.coverImage);
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
+  const [audioNarrationEnabled, setAudioNarrationEnabled] = useState(story.audioNarrationEnabled || false);
 
   const [isGenerating, startTransition] = useTransition();
   const { toast } = useToast();
@@ -51,6 +53,7 @@ export function StorySettingsSheet({ children, story, onStoryUpdate }: StorySett
     setLongDescription(story.longDescription)
     setSelectedGenres([story.genre]);
     setCoverImage(story.coverImage);
+    setAudioNarrationEnabled(story.audioNarrationEnabled || false);
     // Assuming keywords are stored in a property that might not exist on the initial Book type
     // If you add `keywords: string[]` to the Book type, you can set it here.
     // setKeywords(story.keywords?.join(", ") || "");
@@ -104,6 +107,7 @@ export function StorySettingsSheet({ children, story, onStoryUpdate }: StorySett
       genre: primaryGenre,
       description: summary,
       longDescription,
+      audioNarrationEnabled,
       // In a real app, you would handle keywords as an array
       // keywords: keywords.split(',').map(k => k.trim()),
       coverImage: coverImageFile ? URL.createObjectURL(coverImageFile) : coverImage,
@@ -208,6 +212,15 @@ export function StorySettingsSheet({ children, story, onStoryUpdate }: StorySett
             <Label htmlFor="keywords">Keywords / Tropes</Label>
             <Input id="keywords" value={keywords} placeholder="e.g., space opera, found family" onChange={(e) => setKeywords(e.target.value)}  disabled={isGenerating} />
             <p className="text-sm text-muted-foreground">Separate keywords with commas.</p>
+          </div>
+           <div className="flex items-center justify-between rounded-lg border p-4">
+              <div>
+                <Label htmlFor="audio-narration" className="font-semibold">Enable Audio Narration</Label>
+                <p className="text-sm text-muted-foreground">
+                   Allow readers to listen to AI-generated audio.
+                </p>
+              </div>
+            <Switch id="audio-narration" checked={audioNarrationEnabled} onCheckedChange={setAudioNarrationEnabled} />
           </div>
         </div>
         <SheetFooter>

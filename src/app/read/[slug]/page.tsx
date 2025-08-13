@@ -165,19 +165,21 @@ export default function ReadStoryPage() {
                         </div>
                         <div className="flex justify-between items-center mb-4">
                           <h1 className="mb-0">{activeChapter.title}</h1>
-                           <Button onClick={handleGenerateAudio} disabled={isGeneratingAudio} variant="outline" size="sm">
-                              {isGeneratingAudio ? (
-                                <>
-                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                  Generating...
-                                </>
-                              ) : (
-                                <>
-                                  <Volume2 className="mr-2 h-4 w-4" />
-                                  Listen to Chapter
-                                </>
-                              )}
-                            </Button>
+                           {story.audioNarrationEnabled && (
+                            <Button onClick={handleGenerateAudio} disabled={isGeneratingAudio} variant="outline" size="sm">
+                                {isGeneratingAudio ? (
+                                  <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Generating...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Volume2 className="mr-2 h-4 w-4" />
+                                    Listen to Chapter
+                                  </>
+                                )}
+                              </Button>
+                           )}
                         </div>
                          {(isGeneratingAudio || audioUrl) && (
                           <div className="my-6">

@@ -10,6 +10,7 @@ export type Book = {
   coverImage: string;
   genre: string;
   isPublished?: boolean;
+  audioNarrationEnabled?: boolean;
 };
 
 export const genres = [
