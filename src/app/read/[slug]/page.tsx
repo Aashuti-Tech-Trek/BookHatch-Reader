@@ -1,17 +1,19 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useParams, notFound, useRouter } from "next/navigation";
 import { type Book } from "@/lib/data";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, BookOpen, MessageSquare, PanelLeft } from "lucide-react";
+import { ArrowLeft, BookOpen, MessageSquare, PanelLeft, Volume2, Loader2 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { db } from "@/lib/firebase";
 import { getDocs, collection, query, where, orderBy } from "firebase/firestore";
+import { generateChapterAudioAction } from "@/lib/actions/stories";
+import { useToast } from "@/hooks/use-toast";
 
 interface Chapter {
   id: string;
@@ -23,12 +25,15 @@ interface Chapter {
 export default function ReadStoryPage() {
   const params = useParams();
   const router = useRouter();
+  const { toast } = useToast();
   const storySlug = Array.isArray(params.slug) ? params.slug[0] : params.slug;
 
   const [story, setStory] = useState<Book | null>(null);
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [activeChapterId, setActiveChapterId] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [isGeneratingAudio, startAudioGeneration] = useTransition();
 
   useEffect(() => {
     setIsMounted(true);
@@ -62,6 +67,11 @@ export default function ReadStoryPage() {
     fetchStoryAndChapters();
   }, [storySlug]);
 
+  useEffect(() => {
+    // Reset audio when chapter changes
+    setAudioUrl(null);
+  }, [activeChapterId]);
+
   if (!isMounted) {
     return <div className="min-h-screen bg-background text-foreground flex items-center justify-center"><p>Loading Story...</p></div>;
   }
@@ -71,6 +81,24 @@ export default function ReadStoryPage() {
   }
 
   const activeChapter = chapters.find((c) => c.id === activeChapterId);
+
+  const handleGenerateAudio = () => {
+    if (!activeChapter) return;
+
+    startAudioGeneration(async () => {
+      setAudioUrl(null);
+      const result = await generateChapterAudioAction(activeChapter.content);
+      if (result.audioDataUri) {
+        setAudioUrl(result.audioDataUri);
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Audio Generation Failed',
+          description: result.error || 'Could not generate audio for this chapter.',
+        });
+      }
+    });
+  };
 
   const ChapterList = () => (
      <nav className="flex flex-col gap-1 p-4">
@@ -135,7 +163,33 @@ export default function ReadStoryPage() {
                                 data-ai-hint={`${story.genre} book landscape`}
                             />
                         </div>
-                        <h1>{activeChapter.title}</h1>
+                        <div className="flex justify-between items-center mb-4">
+                          <h1 className="mb-0">{activeChapter.title}</h1>
+                           <Button onClick={handleGenerateAudio} disabled={isGeneratingAudio} variant="outline" size="sm">
+                              {isGeneratingAudio ? (
+                                <>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  Generating...
+                                </>
+                              ) : (
+                                <>
+                                  <Volume2 className="mr-2 h-4 w-4" />
+                                  Listen to Chapter
+                                </>
+                              )}
+                            </Button>
+                        </div>
+                         {(isGeneratingAudio || audioUrl) && (
+                          <div className="my-6">
+                            {isGeneratingAudio && <p className="text-muted-foreground text-center">Generating audio, please wait...</p>}
+                            {audioUrl && (
+                                <audio controls className="w-full">
+                                  <source src={audioUrl} type="audio/wav" />
+                                  Your browser does not support the audio element.
+                                </audio>
+                            )}
+                          </div>
+                        )}
                         <div
                             className="space-y-4"
                             dangerouslySetInnerHTML={{
