@@ -15,7 +15,7 @@ export async function generateStaticParams() {
   }));
 }
 
-export default function BookDetailPage({ params }: { params: { slug: string } }) {
+export default async function BookDetailPage({ params }: { params: { slug: string } }) {
   const book = books.find((b) => b.slug === params.slug);
 
   if (!book) {
