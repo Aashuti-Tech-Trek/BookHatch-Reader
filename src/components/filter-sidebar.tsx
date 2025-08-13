@@ -15,7 +15,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Input } from "./ui/input";
 
 export interface FilterValues {
-  author?: string;
   genres?: string[];
   status?: "all" | "published" | "ongoing";
   rating?: "all" | "mature";
@@ -94,7 +93,7 @@ export function FilterSidebar({ onGetRecommendations, setLoading, onFilterChange
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
-          <Accordion type="multiple" defaultValue={['recommendations', 'genres', 'author']} className="w-full">
+          <Accordion type="multiple" defaultValue={['recommendations', 'genres']} className="w-full">
             <AccordionItem value="recommendations">
               <AccordionTrigger className="text-base font-semibold">AI Recommendations</AccordionTrigger>
               <AccordionContent className="space-y-4 pt-2">
@@ -115,17 +114,6 @@ export function FilterSidebar({ onGetRecommendations, setLoading, onFilterChange
                       {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Lightbulb className="mr-2 h-4 w-4" />}
                       Get Recommendations
                   </Button>
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value="author">
-              <AccordionTrigger className="text-base font-semibold">Author</AccordionTrigger>
-              <AccordionContent className="space-y-4 pt-2">
-                <Input 
-                  placeholder="Filter by author name..."
-                  value={currentFilters.author}
-                  onChange={(e) => handleFilterValueChange('author', e.target.value)}
-                />
               </AccordionContent>
             </AccordionItem>
             
@@ -152,7 +140,7 @@ export function FilterSidebar({ onGetRecommendations, setLoading, onFilterChange
               <AccordionContent className="pt-2">
                  <RadioGroup
                   onValueChange={(value) => handleFilterValueChange("status", value as FilterValues['status'])}
-                  value={currentFilters.status}
+                  defaultValue={currentFilters.status}
                   className="space-y-1"
                 >
                   <div className="flex items-center space-x-2">
@@ -176,7 +164,7 @@ export function FilterSidebar({ onGetRecommendations, setLoading, onFilterChange
               <AccordionContent className="pt-2">
                  <RadioGroup
                    onValueChange={(value) => handleFilterValueChange("rating", value as FilterValues['rating'])}
-                   value={currentFilters.rating}
+                   defaultValue={currentFilters.rating}
                    className="space-y-1"
                 >
                   <div className="flex items-center space-x-2">

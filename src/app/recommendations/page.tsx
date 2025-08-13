@@ -23,7 +23,6 @@ export default function RecommendationsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<Omit<FilterValues, 'searchQuery'>>({
     genres: [],
-    author: "",
     status: "all",
     rating: "all",
   });
@@ -67,7 +66,7 @@ export default function RecommendationsPage() {
   }
 
   const handleFilterChange = useCallback((newFilters: FilterValues) => {
-    setFilters(newFilters);
+    setFilters(prev => ({...prev, ...newFilters}));
   }, []);
 
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

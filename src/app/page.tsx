@@ -7,7 +7,7 @@ import { type Book, books, genres } from "@/lib/data";
 import { BookCard } from "@/components/book-card";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { BookOpen, Search, User, LogIn, LogOut, ChevronRight } from "lucide-react";
+import { BookOpen, Search, User, LogIn, LogOut, ChevronRight, ArrowLeft, ArrowRight } from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -18,6 +18,8 @@ import Image from "next/image";
 import Autoplay from "embla-carousel-autoplay";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 
 export default function Home() {
@@ -33,6 +35,15 @@ export default function Home() {
   });
 
   const featuredBooks = books.slice(0, 5);
+  
+  // Create a unique list of authors for the "Top Authors" section
+  const authors = [...new Map(books.map(book => [book.author, book])).values()]
+    .slice(0, 10)
+    .map(book => ({
+        name: book.author,
+        slug: book.author.toLowerCase().replace(/\s+/g, '-'),
+        image: `https://placehold.co/100x100.png` 
+    }));
   
   const genresWithBooks = genres
     .map((genre) => ({
@@ -165,6 +176,39 @@ export default function Home() {
                 ))}
             </div>
           </Carousel>
+        </section>
+
+        <section className="mb-12">
+            <h2 className="text-3xl font-bold font-headline mb-4">Authors of the Month</h2>
+            <Carousel
+                opts={{
+                    align: "start",
+                    loop: true,
+                }}
+                 plugins={[
+                    Autoplay({
+                      delay: 4000,
+                      stopOnInteraction: true,
+                    }),
+                ]}
+                className="w-full"
+            >
+                <CarouselContent className="-ml-4">
+                    {authors.map((author) => (
+                        <CarouselItem key={author.slug} className="basis-1/3 sm:basis-1/4 md:basis-1/5 lg:basis-1/6 xl:basis-1/8 pl-4">
+                            <Link href={`/users/${author.slug}`} className="group">
+                                <div className="flex flex-col items-center text-center gap-2">
+                                     <Avatar className="h-24 w-24 ring-2 ring-transparent group-hover:ring-primary transition-all duration-300">
+                                        <AvatarImage src={author.image} alt={author.name} data-ai-hint="person portrait" />
+                                        <AvatarFallback>{author.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <h3 className="font-semibold text-sm group-hover:text-primary transition-colors">{author.name}</h3>
+                                </div>
+                            </Link>
+                        </CarouselItem>
+                    ))}
+                </CarouselContent>
+            </Carousel>
         </section>
 
         <div className="space-y-12">
