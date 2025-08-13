@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpen, ArrowLeft } from "lucide-react";
+import { BookOpen, ArrowLeft, Search } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -11,6 +11,7 @@ import { Loader2 } from "lucide-react";
 import Image from "next/image";
 import { FilterSidebar } from "@/components/filter-sidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 
 
 export default function RecommendationsPage() {
@@ -62,6 +63,17 @@ export default function RecommendationsPage() {
             Back to Library
           </Link>
         </Button>
+        
+        <form className="relative max-w-2xl mx-auto mb-8">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input
+              type="search"
+              name="q"
+              placeholder="Search for books, authors, or genres..."
+              className="w-full pl-12 pr-4 py-3 text-lg rounded-full"
+            />
+        </form>
+
         <div className="flex flex-col md:flex-row gap-8">
             <aside className="w-full md:w-1/3 lg:w-1/4">
                 <FilterSidebar 

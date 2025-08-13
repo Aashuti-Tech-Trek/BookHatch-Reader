@@ -8,7 +8,6 @@ import * as z from "zod";
 import { genres } from "@/lib/data";
 import { getRecommendations } from "@/lib/actions/recommendations";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -108,21 +107,12 @@ export function FilterSidebar({ onSearch, onGetRecommendations, setLoading }: Fi
             <span>Discover & Filter</span>
         </CardTitle>
         <CardDescription>
-            Find stories by searching or get AI recommendations.
+            Refine results or get AI recommendations.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={form.handleSubmit(onSearch)}>
           <div className="space-y-6">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search author or title..."
-                className="pl-10"
-                {...form.register("searchQuery")}
-              />
-            </div>
-            
             <Accordion type="multiple" defaultValue={['recommendations', 'genres']} className="w-full">
               <AccordionItem value="recommendations">
                 <AccordionTrigger className="text-base font-semibold">AI Recommendations</AccordionTrigger>
@@ -215,7 +205,7 @@ export function FilterSidebar({ onSearch, onGetRecommendations, setLoading }: Fi
             
             <Button type="submit" className="w-full">
               <Search className="mr-2 h-4 w-4" />
-              Apply Filters & Search
+              Apply Filters
             </Button>
           </div>
         </form>
