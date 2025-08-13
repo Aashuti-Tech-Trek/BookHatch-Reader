@@ -7,7 +7,7 @@ import { type Book, books, genres } from "@/lib/data";
 import { BookCard } from "@/components/book-card";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { BookOpen, Sparkles, Search, User, LogIn, LogOut, ChevronRight } from "lucide-react";
+import { BookOpen, Search, User, LogIn, LogOut, ChevronRight } from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -75,14 +75,10 @@ export default function Home() {
           </Link>
           <div className="flex-1" />
           <nav className="flex items-center space-x-1 sm:space-x-2">
-            <Button variant="ghost" size="icon">
-              <Search className="h-4 w-4" />
-              <span className="sr-only">Search</span>
-            </Button>
             <Button asChild variant="ghost">
               <Link href="/recommendations">
-                <Sparkles className="mr-0 sm:mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">Recommendations</span>
+                <Search className="mr-0 sm:mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">Search</span>
               </Link>
             </Button>
             <ThemeToggle />

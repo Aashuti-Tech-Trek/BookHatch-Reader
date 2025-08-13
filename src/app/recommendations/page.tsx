@@ -1,8 +1,10 @@
+
 import Link from "next/link";
-import { BookOpen, ArrowLeft } from "lucide-react";
+import { BookOpen, ArrowLeft, Search } from "lucide-react";
 import { RecommendationsForm } from "@/components/recommendations-form";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export default function RecommendationsPage() {
   return (
@@ -25,6 +27,14 @@ export default function RecommendationsPage() {
             Back to Library
           </Link>
         </Button>
+        <div className="relative max-w-xl mx-auto mb-8">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search for books, authors, or genres..."
+              className="w-full pl-10 pr-4 py-2 text-lg rounded-full"
+            />
+        </div>
         <div className="text-center mb-8 max-w-2xl mx-auto">
           <h1 className="text-4xl font-bold font-headline">Find Your Next Read</h1>
           <p className="text-muted-foreground mt-2 text-lg">
