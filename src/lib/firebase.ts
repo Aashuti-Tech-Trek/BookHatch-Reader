@@ -1,3 +1,4 @@
+
 // src/lib/firebase.ts
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
@@ -5,13 +6,12 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-  "apiKey": "AIzaSyDNBmYP8uspds_0NuH5g3MHfD9RFkqRPo8",
-  "projectId": "bookhatch-reader",
-  "appId": "1:326452768095:web:cb72dc01638efd9b5c5aea",
-  "storageBucket": "bookhatch-reader.firebasestorage.app",
-  "authDomain": "bookhatch-reader.firebaseapp.com",
-  "measurementId": "",
-  "messagingSenderId": "326452768095"
+  apiKey: "AIzaSyBZk99sXJdRjMV_t97MZfPsiPua-w4OqbE",
+  authDomain: "bookhatch-reader.firebaseapp.com",
+  projectId: "bookhatch-reader",
+  storageBucket: "bookhatch-reader.firebasestorage.app",
+  messagingSenderId: "326452768095",
+  appId: "1:326452768095:web:cb72dc01638efd9b5c5aea"
 };
 
 // Initialize Firebase
