@@ -11,7 +11,7 @@ import Image from "next/image";
 import { FilterSidebar, type FilterValues } from "@/components/filter-sidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useDebouncedCallback } from "use-debounce";
+import { useDebounce } from "use-debounce";
 import { searchBooks } from "@/lib/actions/search";
 import { Book } from "@/lib/data";
 
@@ -21,24 +21,35 @@ export default function RecommendationsPage() {
   const [isInitialState, setIsInitialState] = useState(true);
   const [searchResults, setSearchResults] = useState<Book[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filters, setFilters] = useState<Omit<FilterValues, 'searchQuery'>>({});
+  const [filters, setFilters] = useState<Omit<FilterValues, 'searchQuery'>>({
+    genres: [],
+    author: "",
+    status: "all",
+    rating: "all",
+  });
 
-  const debouncedSearch = useDebouncedCallback((query: string, currentFilters: Omit<FilterValues, 'searchQuery'>) => {
+  const [debouncedQuery] = useDebounce(searchQuery, 500);
+  const [debouncedFilters] = useDebounce(filters, 500);
+
+  useEffect(() => {
+    // Only perform search if not in the initial state.
+    // The initial state is left when the user starts interacting.
+    if (isInitialState) return;
+
     startTransition(async () => {
-      setIsInitialState(false);
       setRecommendations([]); // Clear AI recs when performing a search
-      const combinedFilters = { ...currentFilters, searchQuery: query };
+      const combinedFilters = { ...debouncedFilters, searchQuery: debouncedQuery };
       const results = await searchBooks(combinedFilters);
       setSearchResults(results);
     });
-  }, 500);
+  }, [debouncedQuery, debouncedFilters, isInitialState]);
 
+  // This effect sets the app out of the initial state as soon as the user interacts.
   useEffect(() => {
-    // Trigger search when filters from sidebar change or when searchQuery changes
-    if (!isInitialState) {
-        debouncedSearch(searchQuery, filters);
+    if (searchQuery || Object.values(filters).some(val => Array.isArray(val) ? val.length > 0 : (val && val !== 'all'))) {
+      setIsInitialState(false);
     }
-  }, [searchQuery, filters, isInitialState, debouncedSearch]);
+  }, [searchQuery, filters]);
 
 
   const handleGetRecommendations = (recs: string[]) => {
@@ -55,7 +66,7 @@ export default function RecommendationsPage() {
     }
   }
 
-  const handleFilterChange = useCallback((newFilters: Omit<FilterValues, 'searchQuery'>) => {
+  const handleFilterChange = useCallback((newFilters: FilterValues) => {
     setFilters(newFilters);
   }, []);
 
@@ -103,6 +114,7 @@ export default function RecommendationsPage() {
                     onGetRecommendations={handleGetRecommendations}
                     setLoading={handleLoadingState}
                     onFilterChange={handleFilterChange}
+                    currentFilters={filters}
                 />
             </aside>
             <div className="w-full md:w-2/3 lg:w-3/4">

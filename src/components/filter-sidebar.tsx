@@ -1,10 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import { useState } from "react";
 import { genres } from "@/lib/data";
 import { getRecommendations } from "@/lib/actions/recommendations";
 import { Button } from "@/components/ui/button";
@@ -17,42 +14,34 @@ import { Loader2, Lightbulb, SlidersHorizontal } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "./ui/input";
 
-const FilterSchema = z.object({
-  author: z.string().optional(),
-  genres: z.array(z.string()).optional(),
-  status: z.enum(["all", "published", "ongoing"]).default("all"),
-  rating: z.enum(["all", "mature"]).default("all"),
-});
-
-export type FilterValues = z.infer<typeof FilterSchema>;
+export interface FilterValues {
+  author?: string;
+  genres?: string[];
+  status?: "all" | "published" | "ongoing";
+  rating?: "all" | "mature";
+}
 
 interface FilterSidebarProps {
   onGetRecommendations: (recommendations: string[]) => void;
   setLoading: (isLoading: boolean) => void;
-  onFilterChange: (filters: Omit<FilterValues, 'searchQuery'>) => void;
+  onFilterChange: (filters: FilterValues) => void;
+  currentFilters: FilterValues;
 }
 
-export function FilterSidebar({ onGetRecommendations, setLoading, onFilterChange }: FilterSidebarProps) {
+export function FilterSidebar({ onGetRecommendations, setLoading, onFilterChange, currentFilters }: FilterSidebarProps) {
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedRecGenres, setSelectedRecGenres] = useState<string[]>([]);
   
-  const form = useForm<FilterValues>({
-    resolver: zodResolver(FilterSchema),
-    defaultValues: {
-      author: "",
-      genres: [],
-      status: "all",
-      rating: "all",
-    },
-  });
+  const handleFilterValueChange = <K extends keyof FilterValues>(key: K, value: FilterValues[K]) => {
+    onFilterChange({ ...currentFilters, [key]: value });
+  };
 
-  const watchedFilters = form.watch();
-
-  useEffect(() => {
-    onFilterChange(watchedFilters);
-  }, [watchedFilters, onFilterChange]);
-
+  const handleGenreChange = (genre: string, checked: boolean) => {
+    const currentGenres = currentFilters.genres || [];
+    const newGenres = checked ? [...currentGenres, genre] : currentGenres.filter(g => g !== genre);
+    handleFilterValueChange('genres', newGenres);
+  }
 
   async function handleGenerateRecommendations() {
     if (selectedRecGenres.length === 0) {
@@ -134,7 +123,8 @@ export function FilterSidebar({ onGetRecommendations, setLoading, onFilterChange
               <AccordionContent className="space-y-4 pt-2">
                 <Input 
                   placeholder="Filter by author name..."
-                  {...form.register("author")}
+                  value={currentFilters.author}
+                  onChange={(e) => handleFilterValueChange('author', e.target.value)}
                 />
               </AccordionContent>
             </AccordionItem>
@@ -147,15 +137,8 @@ export function FilterSidebar({ onGetRecommendations, setLoading, onFilterChange
                     <div key={`filter-${genre}`} className="flex items-center space-x-2">
                       <Checkbox 
                           id={genre} 
-                          onCheckedChange={(checked) => {
-                            const currentGenres = form.getValues("genres") || [];
-                            if (checked) {
-                              form.setValue("genres", [...currentGenres, genre]);
-                            } else {
-                              form.setValue("genres", currentGenres.filter(g => g !== genre));
-                            }
-                          }}
-                          checked={form.watch("genres")?.includes(genre)}
+                          onCheckedChange={(checked) => handleGenreChange(genre, !!checked)}
+                          checked={currentFilters.genres?.includes(genre)}
                       />
                       <Label htmlFor={genre} className="font-normal">{genre}</Label>
                     </div>
@@ -168,8 +151,8 @@ export function FilterSidebar({ onGetRecommendations, setLoading, onFilterChange
               <AccordionTrigger className="text-base font-semibold">Story Status</AccordionTrigger>
               <AccordionContent className="pt-2">
                  <RadioGroup
-                  onValueChange={(value) => form.setValue("status", value as "all" | "published" | "ongoing")}
-                  defaultValue={form.getValues("status")}
+                  onValueChange={(value) => handleFilterValueChange("status", value as FilterValues['status'])}
+                  value={currentFilters.status}
                   className="space-y-1"
                 >
                   <div className="flex items-center space-x-2">
@@ -192,9 +175,9 @@ export function FilterSidebar({ onGetRecommendations, setLoading, onFilterChange
               <AccordionTrigger className="text-base font-semibold">Content Rating</AccordionTrigger>
               <AccordionContent className="pt-2">
                  <RadioGroup
-                   onValueChange={(value) => form.setValue("rating", value as "all" | "mature")}
-                  defaultValue={form.getValues("rating")}
-                  className="space-y-1"
+                   onValueChange={(value) => handleFilterValueChange("rating", value as FilterValues['rating'])}
+                   value={currentFilters.rating}
+                   className="space-y-1"
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="all" id="rating-all" />
